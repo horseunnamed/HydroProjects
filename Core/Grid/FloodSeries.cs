@@ -5,17 +5,25 @@ namespace Core.Grid
 {
     public class FloodSeries
     {
-        public int DaysCount { get; }
-        public IList<GridMap> HByDays { get; }
-        public IList<GridMap> VyByDays { get; }
-        public IList<GridMap> VxByDays { get; }
+        public IList<FloodDay> Days{ get; }
 
-        public FloodSeries(int daysCount, IList<GridMap> hByDays, IList<GridMap> vyByDays, IList<GridMap> vxByDays)
+        public FloodSeries(IList<FloodDay> days)
         {
-            DaysCount = daysCount;
-            HByDays = hByDays ?? throw new ArgumentNullException(nameof(hByDays));
-            VyByDays = vyByDays ?? throw new ArgumentNullException(nameof(vyByDays));
-            VxByDays = vxByDays ?? throw new ArgumentNullException(nameof(vxByDays));
+            Days = days ?? throw new ArgumentNullException(nameof(days));
+        }
+    }
+
+    public class FloodDay
+    {
+        public GridMap HMap { get; }
+        public GridMap VxMap { get; }
+        public GridMap VyMap { get; }
+
+        public FloodDay(GridMap hMap, GridMap vxMap, GridMap vyMap)
+        {
+            HMap = hMap ?? throw new ArgumentNullException(nameof(hMap));
+            VxMap = vxMap ?? throw new ArgumentNullException(nameof(vxMap));
+            VyMap = vyMap ?? throw new ArgumentNullException(nameof(vyMap));
         }
     }
 }
