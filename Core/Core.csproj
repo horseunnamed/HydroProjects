@@ -62,17 +62,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DirectoryUtils.cs" />
+    <Compile Include="Dir.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="IO\CgInteraction.cs" />
-    <Compile Include="IO\GrdInteraction.cs" />
-    <Compile Include="Model\Channel.cs" />
-    <Compile Include="Model\ChannelPoint.cs" />
-    <Compile Include="Model\ChannelsStats.cs" />
-    <Compile Include="Model\ChannelsTree.cs" />
-    <Compile Include="Model\CofinanceOutput.cs" />
-    <Compile Include="Model\GridMap.cs" />
-    <Compile Include="Model\ProjectPlan.cs" />
+    <Compile Include="Channels\CgInteraction.cs" />
+    <Compile Include="Grid\GrdInteraction.cs" />
+    <Compile Include="Channels\Channel.cs" />
+    <Compile Include="Channels\ChannelPoint.cs" />
+    <Compile Include="Channels\ChannelsTree.cs" />
+    <Compile Include="Grid\GridMap.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Drawing.cs" />
@@ -93,5 +90,6 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,11 +1,11 @@
-﻿using Core.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Core.Channels;
 
 namespace Core
 {
-    class Drawing
+    public class Drawing
     {
         private static Color RGB(int r, int g, int b)
         {

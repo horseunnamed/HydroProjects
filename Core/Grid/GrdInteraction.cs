@@ -1,8 +1,7 @@
-﻿using Core.Model;
-using System;
+﻿using System;
 using System.IO;
 
-namespace Core.IO
+namespace Core.Grid
 {
     public class GrdInteraction
     {

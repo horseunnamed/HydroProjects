@@ -1,11 +1,10 @@
-﻿using Core.Model;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Core.IO
+namespace Core.Channels
 {
-    class CgInteraction
+    public class CgInteraction
     {
         public static ChannelsTree ReadChannelsTreeFromCg(string filename)
         {

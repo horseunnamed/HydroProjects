@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Core.Model
+namespace Core.Channels
 {
     public class ChannelsTree
     {

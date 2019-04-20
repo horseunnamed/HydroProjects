@@ -1,11 +1,11 @@
-﻿using Core.Model;
-using IntegratedAlgo;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Core.Channels;
+using Core.Grid;
 
 namespace PlanSearch
 {
-    class DonorsAcceptors
+    public class DonorsAcceptors
     {
         public enum RatingStrategy
         {
@@ -80,7 +80,7 @@ namespace PlanSearch
             return strategy == RatingStrategy.Length ? result : ratioRating;
         }
 
-        ProjectPlan Run(CofinanceOutput input)
+        public ProjectPlan Run(CofinanceInfo input)
         {
             return null;
         }

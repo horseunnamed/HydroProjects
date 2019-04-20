@@ -1,13 +1,11 @@
 ﻿using System.Linq;
 
-namespace Core.Model
+namespace Core.Grid
 {
 
     public class GridMap
     {
-        public const double EMPTY_VALUE = 1.70141E+038f;
-
-        public char[] info;
+        public const double EmptyValue = 1.70141E+038f;
 
         public double MinX { get; }
         public double MaxX { get; }

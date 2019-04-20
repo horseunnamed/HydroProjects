@@ -43,8 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Stats\ChannelSystemStats.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Stats\StatsAggregation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -53,6 +55,10 @@
     <ProjectReference Include="..\Core\Core.csproj">
       <Project>{573fe16a-ba4e-44f2-a86d-e5273580251f}</Project>
       <Name>Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PlanSearch\PlanSearch.csproj">
+      <Project>{1023237A-7FBE-43CD-A610-87A97F2EBE0A}</Project>
+      <Name>PlanSearch</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
