@@ -65,6 +65,7 @@
     <Compile Include="Dir.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Channels\CgInteraction.cs" />
+    <Compile Include="Grid\FloodSeries.cs" />
     <Compile Include="Grid\GrdInteraction.cs" />
     <Compile Include="Channels\Channel.cs" />
     <Compile Include="Channels\ChannelPoint.cs" />

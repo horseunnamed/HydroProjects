@@ -26,7 +26,7 @@ namespace CofinanceSearch
             // usage of donors-acceptors algo
             
             // initialization of algo:
-            var donorsAcceptors = new DonorsAcceptors(DonorsAcceptors.RatingStrategy.Length, 
+            var donorsAcceptors = new DonorsAcceptors(DonorsAcceptors.RatingStrategy.TargetCount, 
                 channelsTree, gridMap, gridMap);
 
             // on each iteration call method Run with CofinanceInfo:
