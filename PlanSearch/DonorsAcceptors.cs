@@ -36,24 +36,24 @@ namespace PlanSearch
 
         public ProjectPlan Run(CofinanceInfo input)
         {
-            var bestS = -1;
             var bestEstimation = -1.0;
+            var estimations = new List<ProjectPlan.Estimation>();
             ISet<Channel> bestAcceptors = null;
             ISet<Channel> bestDonors = null;
             for (var s = 1; s < _targetRating.Count && s < 100; s++)
             {
                 var acceptors = new HashSet<Channel>(_targetRating.Take(s).Select(pair => pair.Item2));
-                var donors = GetDonors(_channelsTree, acceptors);
-                var estimation = donors.Select(channel => _vEstimation[channel]).Sum();
-                if (estimation > bestEstimation)
+                var donors = GetDonors(acceptors);
+                var totalV = donors.Select(channel => _vEstimation[channel]).Sum();
+                if (totalV > bestEstimation)
                 {
-                    bestS = s;
-                    bestEstimation = estimation;
+                    bestEstimation = totalV;
                     bestAcceptors = acceptors;
                     bestDonors = donors;
                 }
+                estimations.Add(new ProjectPlan.Estimation(s, totalV));
             }
-            return new ProjectPlan(bestDonors, bestAcceptors);
+            return new ProjectPlan(bestDonors, bestAcceptors, estimations);
         }
 
         private IDictionary<Channel, double> GetVEstimation(FloodSeries floodSeries)
@@ -65,11 +65,11 @@ namespace PlanSearch
                 if (channel.Points.Count > 3)
                 {
                     var origin = channel.Points[2];
-                    for (var day = 0; day < floodSeries.DaysCount; day++)
+                    foreach (var day in floodSeries.Days)
                     {
-                        var vx = floodSeries.VxByDays[day][origin.X, origin.Y];
-                        var vy = floodSeries.VyByDays[day][origin.X, origin.Y];
-                        var h = floodSeries.HByDays[day][origin.X, origin.Y];
+                        var vx = day.VxMap[origin.X, origin.Y];
+                        var vy = day.VyMap[origin.X, origin.Y];
+                        var h = day.HMap[origin.X, origin.Y];
                         sumV += Math.Sqrt(vx * vx + vy * vy) * h * 24 * 60 * 60 / 1e6;
                     }
                 }
@@ -140,7 +140,7 @@ namespace PlanSearch
                 .OrderByDescending(pair => pair.Item1).ToList();
         }
 
-        private ISet<Channel> GetDonors(ChannelsTree tree, IEnumerable<Channel> acceptors)
+        private ISet<Channel> GetDonors(IEnumerable<Channel> acceptors)
         {
             var result = new HashSet<Channel>();
             var transAcceptors = new HashSet<Channel>();
@@ -148,7 +148,7 @@ namespace PlanSearch
             {
                 transAcceptors.UnionWith(GetChannelsPathTo(channel));
             }
-            tree.VisitChannelsFromTop(channel => {
+            _channelsTree.VisitChannelsFromTop(channel => {
                 var parent = channel.Parent;
                 if (
                         IsAllowedToBeDonor(channel) &&
