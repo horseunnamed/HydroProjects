@@ -115,7 +115,7 @@ namespace PlanSearch
                     targetCount++;
                 }
             }
-            var targetRatio = zone.Count > 0 ? (double) targetCount / zone.Count : 0;
+            var targetRatio = zone.Count > 0 && channel.Points.Count > 10 ? (double) targetCount / zone.Count : 0;
             return _strategy == RatingStrategy.TargetCount ? targetCount : targetRatio;
         }
 

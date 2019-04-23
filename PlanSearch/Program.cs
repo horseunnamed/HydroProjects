@@ -34,23 +34,22 @@ namespace PlanSearch
             }
         }
 
-        private static void TestDonorsAcceptors()
+        private static void TestDonorsAcceptors(DonorsAcceptors.RatingStrategy strategy, string resultsDir)
         {
-            var ecoTargetMap = GrdInteraction.ReadGridMapFromGrd(
-                Dir.Data("frequencies/add_frequency_from_0,65_to_0,85.grd"));
+            var ecoTargetMap = GrdInteraction.ReadGridMapFromGrd(Dir.Data("frequencies/add_frequency_from_0,65_to_0,85.grd"));
             var channelsTree = CgInteraction.ReadChannelsTreeFromCg(Dir.Data("channels.cg"));
             var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(Dir.Data("flood/23.zip"), 20, 39);
-            var donorsAcceptors = new DonorsAcceptors(
-                DonorsAcceptors.RatingStrategy.TargetCount, channelsTree, ecoTargetMap, floodSeries, 30);
+            var donorsAcceptors = new DonorsAcceptors(strategy, channelsTree, ecoTargetMap, floodSeries, 30);
             var cofinanceInfo = new CofinanceInfo(0, new Dictionary<long, double>());
             var projectPlan = donorsAcceptors.Run(cofinanceInfo);
-            WriteProjectPlanToCsv(projectPlan, Dir.Data("estimations/donors_estimation.csv"));
-            DrawProjectPlan(projectPlan, channelsTree.GetAllChannels(), ecoTargetMap, Dir.Data("estimations"));
+            WriteProjectPlanToCsv(projectPlan, Dir.Data($"{resultsDir}/donors_estimation.csv"));
+            DrawProjectPlan(projectPlan, channelsTree.GetAllChannels(), ecoTargetMap, resultsDir);
         }
 
         static void Main(string[] args)
         {
-            TestDonorsAcceptors();
+            TestDonorsAcceptors(DonorsAcceptors.RatingStrategy.TargetCount, Dir.Data("test_donors/estimation_count"));
+            TestDonorsAcceptors(DonorsAcceptors.RatingStrategy.TargetRatio, Dir.Data("test_donors/estimation_ratio"));
         }
     }
 }
