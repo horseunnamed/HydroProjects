@@ -36,15 +36,21 @@ namespace PlanSearch
             _vEstimation = GetVEstimation(floodSeries);
         }
 
-        public ProjectPlan Run(CofinanceInfo input)
+        public ProjectPlan Run(CofinanceInfo cofinanceInfo)
         {
             var estimations = new List<ProjectPlan.Estimation>();
             for (var s = 1; s < _targetRating.Count && s <= _maxS; s++)
             {
                 var acceptors = new HashSet<Channel>(_targetRating.Take(s).Select(pair => pair.Item2));
-                var donors = GetDonors(acceptors);
-                var totalV = donors.Select(channel => _vEstimation[channel]).Sum();
-                estimations.Add(new ProjectPlan.Estimation(s, totalV, donors, acceptors));
+                var potentialDonors = GetDonors(acceptors);
+                var optimalDonors = DonorsOptimizer.FindOptimalDonors(potentialDonors, cofinanceInfo);
+                var totalEffect = optimalDonors.Select(donor => donor.Effect).Sum();
+                var totalPrice = optimalDonors
+                    .Select(donor => donor.Channel.Id)
+                    .Select(donorId => cofinanceInfo.ChannelsPrices[donorId])
+                    .Sum();
+                estimations.Add(new ProjectPlan.Estimation(s, optimalDonors.Count, potentialDonors.Count, totalEffect, totalPrice,
+                    new HashSet<Channel>(optimalDonors.Select(donor => donor.Channel)), acceptors));
             }
             return new ProjectPlan(estimations);
         }
@@ -126,16 +132,16 @@ namespace PlanSearch
             return result;
         }
 
-        private IList<(double, Channel)> ToRating(IDictionary<Channel, double> values)
+        private static IList<(double, Channel)> ToRating(IDictionary<Channel, double> values)
         {
             return values.ToList()
                 .Select(keyValue => (keyValue.Value, keyValue.Key))
                 .OrderByDescending(pair => pair.Item1).ToList();
         }
 
-        private ISet<Channel> GetDonors(IEnumerable<Channel> acceptors)
+        private ISet<Donor> GetDonors(IEnumerable<Channel> acceptors)
         {
-            var result = new HashSet<Channel>();
+            var result = new HashSet<Donor>();
             var transAcceptors = new HashSet<Channel>();
             foreach (var channel in acceptors)
             {
@@ -149,24 +155,22 @@ namespace PlanSearch
                         !transAcceptors.Contains(channel)
                     )
                 {
-                    result.Add(channel);
+                    result.Add(new Donor(channel, _vEstimation[channel]));
                 }
             });
             return result;
         }
 
-        private ISet<Channel> GetChannelsPathTo(Channel channel)
+        private static IEnumerable<Channel> GetChannelsPathTo(Channel channel)
         {
             if (channel == null)
             {
                 return new HashSet<Channel>();
             }
-            else
-            {
-                var result = new HashSet<Channel> {channel};
-                result.UnionWith(GetChannelsPathTo(channel.Parent));
-                return result;
-            }
+
+            var result = new HashSet<Channel> {channel};
+            result.UnionWith(GetChannelsPathTo(channel.Parent));
+            return result;
         }
 
         private bool IsAllowedToBeDonor(Channel channel)
