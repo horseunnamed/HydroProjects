@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Channels;
 
 namespace PlanSearch
 {
     public class CofinanceInfo
     {
         public double R { get; }
-        public IDictionary<long, double> ChannelsPrices { get; }
+        public IDictionary<Channel, double> ChannelsPrices { get; }
 
-        public CofinanceInfo(double r, IDictionary<long, double> channelsNewPrices)
+        public CofinanceInfo(double r, IDictionary<Channel, double> channelsPrices)
         {
             R = r;
-            ChannelsPrices = channelsNewPrices ?? throw new ArgumentNullException(nameof(channelsNewPrices));
+            ChannelsPrices = channelsPrices;
         }
     }
 }

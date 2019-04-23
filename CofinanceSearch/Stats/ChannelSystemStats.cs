@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Core.Channels;
 
 namespace CofinanceSearch.Stats
 {
@@ -25,15 +27,15 @@ namespace CofinanceSearch.Stats
 
     public class ChannelStats
     {
-        public long ChannelId { get; }
+        public Channel Channel { get; }
         public Stats SelfStats { get; }
         public Stats AggrStats { get; }
 
-        public ChannelStats(long channelId, Stats selfStats, Stats aggrStats)
+        public ChannelStats(Channel channel, Stats selfStats, Stats aggrStats)
         {
-            ChannelId = channelId;
-            SelfStats = selfStats;
-            AggrStats = aggrStats;
+            Channel = channel ?? throw new ArgumentNullException(nameof(channel));
+            SelfStats = selfStats ?? throw new ArgumentNullException(nameof(selfStats));
+            AggrStats = aggrStats ?? throw new ArgumentNullException(nameof(aggrStats));
         }
     }
 
@@ -41,7 +43,7 @@ namespace CofinanceSearch.Stats
     {
         public IList<ChannelStats> ChannelsStats { get; }
 
-        public ChannelSystemStats(List<ChannelStats> channelsStats)
+        public ChannelSystemStats(IList<ChannelStats> channelsStats)
         {
             ChannelsStats = channelsStats;
         }

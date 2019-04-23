@@ -15,5 +15,14 @@ namespace Core.Channels
             Id = id;
         }
 
+        protected bool Equals(Channel other)
+        {
+            return Id == other.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
     }
 }

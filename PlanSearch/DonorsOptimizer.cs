@@ -27,7 +27,7 @@ namespace PlanSearch
                     lp.set_col_name(i + 1, donor.Channel.Id.ToString());
                     lp.set_binary(i + 1, true);
                     boundColno[i] = targetColno[i] = i + 1;
-                    boundRow[i] = bounds.ChannelsPrices[donor.Channel.Id];
+                    boundRow[i] = bounds.ChannelsPrices[donor.Channel];
                     targetRow[i] = donor.Effect;
                     i++;
                 }

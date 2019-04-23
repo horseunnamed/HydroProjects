@@ -110,7 +110,7 @@ namespace CofinanceSearch.Stats
 
                 aggrStatsDict[channel] = aggrStats;
 
-                channelsStats.Add(new ChannelStats(channel.Id, channelStats, aggrStats));
+                channelsStats.Add(new ChannelStats(channel, channelStats, aggrStats));
             });
 
 

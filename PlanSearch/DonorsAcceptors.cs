@@ -46,8 +46,7 @@ namespace PlanSearch
                 var optimalDonors = DonorsOptimizer.FindOptimalDonors(potentialDonors, cofinanceInfo);
                 var totalEffect = optimalDonors.Select(donor => donor.Effect).Sum();
                 var totalPrice = optimalDonors
-                    .Select(donor => donor.Channel.Id)
-                    .Select(donorId => cofinanceInfo.ChannelsPrices[donorId])
+                    .Select(donor => cofinanceInfo.ChannelsPrices[donor.Channel])
                     .Sum();
                 estimations.Add(new ProjectPlan.Estimation(s, optimalDonors.Count, potentialDonors.Count, totalEffect, totalPrice,
                     new HashSet<Channel>(optimalDonors.Select(donor => donor.Channel)), acceptors));

@@ -9,7 +9,7 @@ namespace CofinanceSearch
 {
     class Program
     {
-        static void Main(string[] args)
+        private static void Main()
         {
 
             // reading of channels tree from file:

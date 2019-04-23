@@ -8,7 +8,7 @@ using Core.Grid;
 
 namespace PlanSearch
 {
-    class Program
+    internal class Program
     {
         private static void WriteProjectPlanToCsv(ProjectPlan plan, string filename)
         {
@@ -38,10 +38,10 @@ namespace PlanSearch
 
         private static CofinanceInfo GenerateCofinanceInfo(IEnumerable<Channel> channels)
         {
-            var channelsPrices = new Dictionary<long, double>();
+            var channelsPrices = new Dictionary<Channel, double>();
             foreach (var channel in channels)
             {
-                channelsPrices[channel.Id] = 10;
+                channelsPrices[channel] = 10;
             }
             return new CofinanceInfo(100, channelsPrices);
         }
@@ -58,7 +58,7 @@ namespace PlanSearch
             DrawProjectPlan(projectPlan, channelsTree.GetAllChannels(), ecoTargetMap, resultsDir);
         }
 
-        static void Main(string[] args)
+        private static void Main()
         {
             TestDonorsAcceptors(DonorsAcceptors.RatingStrategy.TargetCount, Dir.Data("test_donors/estimation_count"));
             TestDonorsAcceptors(DonorsAcceptors.RatingStrategy.TargetRatio, Dir.Data("test_donors/estimation_ratio"));
