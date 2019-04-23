@@ -65,13 +65,15 @@ namespace CofinanceSearch.Stats
                         }
                     }
                 }
-                selfStatsDict[channel] = new Stats(
+                var selfStats = new Stats(
                    channel.Points.Count,
                    nonCadastrFlooded,
                    nonCadastrNotFlooded,
                    hozFlooded,
                    hozNotFlooded,
                    socNotFlooded);
+
+                selfStatsDict[channel] = selfStats;
             });
 
             var channelsStats = new List<ChannelStats>();
@@ -89,7 +91,7 @@ namespace CofinanceSearch.Stats
 
                 foreach (var child in channel.Children)
                 {
-                    var childAggrStats = selfStatsDict[child];
+                    var childAggrStats = aggrStatsDict[child];
                     aggrLength += childAggrStats.Length;
                     aggrNonCadastrFlooded += childAggrStats.NonCadastrFlooded;
                     aggrNonCadastrNotFlooded += childAggrStats.NonCadastrNotFlooded;
