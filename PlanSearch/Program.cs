@@ -62,6 +62,7 @@ namespace PlanSearch
         {
             TestDonorsAcceptors(DonorsAcceptors.RatingStrategy.TargetCount, Dir.Data("test_donors/estimation_count"));
             TestDonorsAcceptors(DonorsAcceptors.RatingStrategy.TargetRatio, Dir.Data("test_donors/estimation_ratio"));
+            System.Console.WriteLine("Press any key to close...");
             System.Console.ReadKey();
         }
     }

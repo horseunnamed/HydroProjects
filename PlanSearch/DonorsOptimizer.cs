@@ -14,6 +14,7 @@ namespace PlanSearch
 
             using (var lp = LpSolve.make_lp(0, donors.Count))
             {
+                lp.set_verbose(3);
                 var boundRow = new double[donors.Count];
                 var boundColno = new int[donors.Count];
 
