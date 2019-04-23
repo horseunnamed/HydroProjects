@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Channels;
 using Core.Grid;
 
@@ -9,80 +10,173 @@ namespace PlanSearch
     {
         public enum RatingStrategy
         {
-            Length, Ratio
+            TargetCount, TargetRatio
         }
 
-        private static readonly int ZONE_R = 10;
-        private static readonly int TARGET_ACCEPTOR_CELL = 3;
-        private static readonly int TARGET_DONOR_CELL = 2;
+        public const int ZoneR = 10;
+        public const double TargetCell = 3;
 
-        private readonly RatingStrategy strategy;
-        private readonly ChannelsTree channelsTree;
-        private readonly GridMap ecoTargetMap;
-        private readonly GridMap socTargetMap;
-        private readonly IDictionary<Channel, List<(int, int)>> channelZoneCache = 
-            new Dictionary<Channel, List<(int, int)>>();
+        private readonly int _maxS;
+        private readonly RatingStrategy _strategy;
+        private readonly ChannelsTree _channelsTree;
+        private readonly IDictionary<Channel, List<(int, int)>> _channelZones;
+        private readonly IDictionary<Channel, double> _targetValues;
+        private readonly IList<(double, Channel)> _targetRating;
+        private readonly IDictionary<Channel, double> _vEstimation;
 
-        public DonorsAcceptors(RatingStrategy strategy, ChannelsTree channelsTree, GridMap ecoTargetMap, GridMap socTargetMap)
+        public DonorsAcceptors(RatingStrategy strategy, ChannelsTree channelsTree, GridMap ecoTargetMap, FloodSeries floodSeries, int maxS=100)
         {
-            this.strategy = strategy;
-            this.channelsTree = channelsTree ?? throw new ArgumentNullException(nameof(channelsTree));
-            this.ecoTargetMap = ecoTargetMap ?? throw new ArgumentNullException(nameof(ecoTargetMap));
-            this.socTargetMap = socTargetMap ?? throw new ArgumentNullException(nameof(socTargetMap));
-        }
+            _strategy = strategy;
+            _channelsTree = channelsTree ?? throw new ArgumentNullException(nameof(channelsTree));
+            _maxS = maxS;
 
-
-        private List<(int, int)> GetChannelZone(Channel channel, int mapW, int mapH)
-        {
-            if (channelZoneCache.ContainsKey(channel))
-            {
-                return channelZoneCache[channel];
-            }
-
-            var visited = new HashSet<(int, int)>();
-            var channelZone = new List<(int, int)>();
-            foreach (var point in channel.Points)
-            {
-                var x0 = Math.Max(0, point.X - ZONE_R);
-                var y0 = Math.Max(0, point.Y - ZONE_R);
-                var x1 = Math.Min(mapW - 1, point.X + ZONE_R);
-                var y1 = Math.Min(mapH - 1, point.Y + ZONE_R);
-
-                for (var x = x0; x <= x1; x++)
-                {
-                    for (var y = y0; y < y1; y++)
-                    {
-                        if (!visited.Contains((x, y)))
-                        {
-                            visited.Add((x, y));
-                            channelZone.Add((x, y));
-                        }
-                    }
-                }
-            }
-
-            channelZoneCache[channel] = channelZone;
-            return channelZone;
-        }
-
-        private double FindAcceptorRating(Channel channel, GridMap targetMap, RatingStrategy ratingStrategy)
-        {
-            var result = 0;
-            var zone = GetChannelZone(channel, targetMap.Width, targetMap.Height);
-            foreach ((var x, var y) in zone)
-            {
-                if (ecoTargetMap[x, y] == TARGET_ACCEPTOR_CELL)
-                {
-                    result++;
-                }
-            }
-            double ratioRating = zone.Count > 0 ? (double) result / zone.Count : 0;
-            return strategy == RatingStrategy.Length ? result : ratioRating;
+            _channelZones = GetChannelZones(ecoTargetMap.Width, ecoTargetMap.Height);
+            _targetValues = GetTargetValues(ecoTargetMap);
+            _targetRating = ToRating(_targetValues);
+            _vEstimation = GetVEstimation(floodSeries);
         }
 
         public ProjectPlan Run(CofinanceInfo input)
         {
-            return null;
+            var estimations = new List<ProjectPlan.Estimation>();
+            for (var s = 1; s < _targetRating.Count && s <= _maxS; s++)
+            {
+                var acceptors = new HashSet<Channel>(_targetRating.Take(s).Select(pair => pair.Item2));
+                var donors = GetDonors(acceptors);
+                var totalV = donors.Select(channel => _vEstimation[channel]).Sum();
+                estimations.Add(new ProjectPlan.Estimation(s, totalV, donors, acceptors));
+            }
+            return new ProjectPlan(estimations);
+        }
+
+        private IDictionary<Channel, double> GetVEstimation(FloodSeries floodSeries)
+        {
+            var result = new Dictionary<Channel, double>();
+            _channelsTree.VisitChannelsFromTop(channel =>
+            {
+                var sumV = 0d;
+                if (channel.Points.Count > 3)
+                {
+                    var origin = channel.Points[2];
+                    foreach (var day in floodSeries.Days)
+                    {
+                        var vx = day.VxMap[origin.X, origin.Y];
+                        var vy = day.VyMap[origin.X, origin.Y];
+                        var h = day.HMap[origin.X, origin.Y];
+                        sumV += Math.Sqrt(vx * vx + vy * vy) * h * 24 * 60 * 60 / 1e6;
+                    }
+                }
+                result[channel] = Math.Max(sumV - channel.Points.Count * 2 * 50 * 50 / 1e6, 0);
+            });
+            return result;
+        }
+
+        private IDictionary<Channel, List<(int, int)>> GetChannelZones(int mapW, int mapH)
+        {
+            var result = new Dictionary<Channel, List<(int, int)>>();
+            _channelsTree.VisitChannelsFromTop(channel =>
+            {
+                var visited = new HashSet<(int, int)>();
+                var channelZone = new List<(int, int)>();
+                foreach (var point in channel.Points)
+                {
+                    var x0 = Math.Max(0, point.X - ZoneR);
+                    var y0 = Math.Max(0, point.Y - ZoneR);
+                    var x1 = Math.Min(mapW - 1, point.X + ZoneR);
+                    var y1 = Math.Min(mapH - 1, point.Y + ZoneR);
+
+                    for (var x = x0; x <= x1; x++)
+                    {
+                        for (var y = y0; y < y1; y++)
+                        {
+                            if (!visited.Contains((x, y)))
+                            {
+                                visited.Add((x, y));
+                                channelZone.Add((x, y));
+                            }
+                        }
+                    }
+                }
+
+                result[channel] = channelZone;
+            });
+            return result;
+        }
+
+        private double GetChannelTargetValue(Channel channel, GridMap targetMap)
+        {
+            var targetCount = 0;
+            var zone = _channelZones[channel];
+            foreach (var (x, y) in zone)
+            {
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                if (targetMap[x, y] == TargetCell)
+                {
+                    targetCount++;
+                }
+            }
+            var targetRatio = zone.Count > 0 && channel.Points.Count > 10 ? (double) targetCount / zone.Count : 0;
+            return _strategy == RatingStrategy.TargetCount ? targetCount : targetRatio;
+        }
+
+        private IDictionary<Channel, double> GetTargetValues(GridMap targetMap)
+        {
+            var result = new Dictionary<Channel, double>();
+            _channelsTree.VisitChannelsFromTop(channel => { result[channel] = GetChannelTargetValue(channel, targetMap); });
+            return result;
+        }
+
+        private IList<(double, Channel)> ToRating(IDictionary<Channel, double> values)
+        {
+            return values.ToList()
+                .Select(keyValue => (keyValue.Value, keyValue.Key))
+                .OrderByDescending(pair => pair.Item1).ToList();
+        }
+
+        private ISet<Channel> GetDonors(IEnumerable<Channel> acceptors)
+        {
+            var result = new HashSet<Channel>();
+            var transAcceptors = new HashSet<Channel>();
+            foreach (var channel in acceptors)
+            {
+                transAcceptors.UnionWith(GetChannelsPathTo(channel));
+            }
+            _channelsTree.VisitChannelsFromTop(channel => {
+                var parent = channel.Parent;
+                if (
+                        IsAllowedToBeDonor(channel) &&
+                        transAcceptors.Contains(parent) && 
+                        !transAcceptors.Contains(channel)
+                    )
+                {
+                    result.Add(channel);
+                }
+            });
+            return result;
+        }
+
+        private ISet<Channel> GetChannelsPathTo(Channel channel)
+        {
+            if (channel == null)
+            {
+                return new HashSet<Channel>();
+            }
+            else
+            {
+                var result = new HashSet<Channel> {channel};
+                result.UnionWith(GetChannelsPathTo(channel.Parent));
+                return result;
+            }
+        }
+
+        private bool IsAllowedToBeDonor(Channel channel)
+        {
+            var targetValue = _targetValues[channel];
+            if (_strategy == RatingStrategy.TargetCount)
+            {
+                return targetValue < channel.Points.Count * 2;
+            }
+            return targetValue < 0.5;
         }
     }
 }

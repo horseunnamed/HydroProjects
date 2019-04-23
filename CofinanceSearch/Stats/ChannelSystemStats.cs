@@ -39,7 +39,7 @@ namespace CofinanceSearch.Stats
 
     public class ChannelSystemStats
     {
-        public List<ChannelStats> ChannelsStats { get; }
+        public IList<ChannelStats> ChannelsStats { get; }
 
         public ChannelSystemStats(List<ChannelStats> channelsStats)
         {
