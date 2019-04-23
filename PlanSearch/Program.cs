@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Core;
 using Core.Channels;
 using Core.Grid;
@@ -18,17 +18,34 @@ namespace PlanSearch
             File.WriteAllText(filename, csvText);
         }
 
+        private static void DrawProjectPlan(ProjectPlan plan, IEnumerable<Channel> allChannels, GridMap targetMap, string dir)
+        {
+            foreach (var estimation in plan.Estimations)
+            {
+                var bitmap = Drawing.DrawBitmap(944, 944, graphics =>
+                {
+                    Drawing.DrawGridMapValues(graphics, targetMap, DonorsAcceptors.TargetCell, new SolidBrush(Color.PowderBlue));
+                    Drawing.DrawChannels(graphics, allChannels, new SolidBrush(Color.Black));
+                    Drawing.DrawChannels(graphics, estimation.Acceptors, new SolidBrush(Color.LimeGreen));
+                    Drawing.DrawChannels(graphics, estimation.Acceptors, new SolidBrush(Color.LimeGreen));
+                    Drawing.DrawChannels(graphics, estimation.Donors, new SolidBrush(Color.Red));
+                });
+                bitmap.Save($"{dir}/s_{estimation.S}.png");
+            }
+        }
+
         private static void TestDonorsAcceptors()
         {
             var ecoTargetMap = GrdInteraction.ReadGridMapFromGrd(
                 Dir.Data("frequencies/add_frequency_from_0,65_to_0,85.grd"));
             var channelsTree = CgInteraction.ReadChannelsTreeFromCg(Dir.Data("channels.cg"));
-            var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(Dir.Data("flood/23.zip"), 20);
+            var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(Dir.Data("flood/23.zip"), 20, 39);
             var donorsAcceptors = new DonorsAcceptors(
-                DonorsAcceptors.RatingStrategy.TargetCount, channelsTree, ecoTargetMap, floodSeries);
+                DonorsAcceptors.RatingStrategy.TargetCount, channelsTree, ecoTargetMap, floodSeries, 30);
             var cofinanceInfo = new CofinanceInfo(0, new Dictionary<long, double>());
             var projectPlan = donorsAcceptors.Run(cofinanceInfo);
-            WriteProjectPlanToCsv(projectPlan, Dir.Data("donors_estimation.csv"));
+            WriteProjectPlanToCsv(projectPlan, Dir.Data("estimations/donors_estimation.csv"));
+            DrawProjectPlan(projectPlan, channelsTree.GetAllChannels(), ecoTargetMap, Dir.Data("estimations"));
         }
 
         static void Main(string[] args)

@@ -24,7 +24,7 @@ namespace Core
             var days = 20;
             var sw = new Stopwatch();
             sw.Start();
-            GrdInteraction.ReadFloodSeriesFromZip(Dir.Data("flood/23.zip"), days);
+            GrdInteraction.ReadFloodSeriesFromZip(Dir.Data("flood/23.zip"), 0, days - 1);
             sw.Stop();
             Console.WriteLine($"Read {days} for {sw.Elapsed.Seconds} seconds");
             Console.ReadKey();

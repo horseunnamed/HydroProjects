@@ -37,13 +37,13 @@ namespace Core.Grid
             }
         }
 
-        public static FloodSeries ReadFloodSeriesFromZip(string filename, int days)
+        public static FloodSeries ReadFloodSeriesFromZip(string filename, int startDay, int endDay)
         {
             var floodDays = new List<FloodDay>();
             using (var zipToOpen = new FileStream(filename, FileMode.Open))
             using (var archive = new ZipArchive(zipToOpen))
             {
-                for (var day = 0; day < days; day++)
+                for (var day = startDay; day <= endDay; day++)
                 {
                     var hEntry = archive.GetEntry(GetEntryNameForMap("H", day));
                     var hMap = ReadGridMapFromStream(hEntry?.Open());

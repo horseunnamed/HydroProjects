@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using Core.Channels;
+using Core.Grid;
 
 namespace Core
 {
@@ -33,9 +34,8 @@ namespace Core
         {
             foreach (var channel in channels)
             {
-                for (int i = 0; i < channel.Points.Count; i++)
+                foreach (var p in channel.Points)
                 {
-                    var p = channel.Points[i];
                     graphics.FillRectangle(brush, p.X, p.Y, 1, 1);
                 }
             }
@@ -47,6 +47,17 @@ namespace Core
             {
                 graphics.FillRectangle(brush, p.X, p.Y, 1, 1);
             }
+        }
+
+        public static void DrawGridMapValues(Graphics graphics, GridMap gridMap, double value, Brush brush)
+        {
+            gridMap.Values.Visit((v, x, y) =>
+            {
+                if (Math.Abs(v - value) < 1e-10)
+                {
+                    graphics.FillRectangle(brush, x, y, 1, 1);
+                }
+            });
         }
 
         public static void DrawChannelsOrigins(Graphics graphics, IEnumerable<Channel> channels)

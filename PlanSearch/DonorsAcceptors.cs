@@ -13,9 +13,10 @@ namespace PlanSearch
             TargetCount, TargetRatio
         }
 
-        private const int ZoneR = 10;
-        private const double TargetCell = 3;
+        public const int ZoneR = 10;
+        public const double TargetCell = 3;
 
+        private readonly int _maxS;
         private readonly RatingStrategy _strategy;
         private readonly ChannelsTree _channelsTree;
         private readonly IDictionary<Channel, List<(int, int)>> _channelZones;
@@ -23,10 +24,11 @@ namespace PlanSearch
         private readonly IList<(double, Channel)> _targetRating;
         private readonly IDictionary<Channel, double> _vEstimation;
 
-        public DonorsAcceptors(RatingStrategy strategy, ChannelsTree channelsTree, GridMap ecoTargetMap, FloodSeries floodSeries)
+        public DonorsAcceptors(RatingStrategy strategy, ChannelsTree channelsTree, GridMap ecoTargetMap, FloodSeries floodSeries, int maxS=100)
         {
             _strategy = strategy;
             _channelsTree = channelsTree ?? throw new ArgumentNullException(nameof(channelsTree));
+            _maxS = maxS;
 
             _channelZones = GetChannelZones(ecoTargetMap.Width, ecoTargetMap.Height);
             _targetValues = GetTargetValues(ecoTargetMap);
@@ -36,24 +38,15 @@ namespace PlanSearch
 
         public ProjectPlan Run(CofinanceInfo input)
         {
-            var bestEstimation = -1.0;
             var estimations = new List<ProjectPlan.Estimation>();
-            ISet<Channel> bestAcceptors = null;
-            ISet<Channel> bestDonors = null;
-            for (var s = 1; s < _targetRating.Count && s < 100; s++)
+            for (var s = 1; s < _targetRating.Count && s <= _maxS; s++)
             {
                 var acceptors = new HashSet<Channel>(_targetRating.Take(s).Select(pair => pair.Item2));
                 var donors = GetDonors(acceptors);
                 var totalV = donors.Select(channel => _vEstimation[channel]).Sum();
-                if (totalV > bestEstimation)
-                {
-                    bestEstimation = totalV;
-                    bestAcceptors = acceptors;
-                    bestDonors = donors;
-                }
-                estimations.Add(new ProjectPlan.Estimation(s, totalV));
+                estimations.Add(new ProjectPlan.Estimation(s, totalV, donors, acceptors));
             }
-            return new ProjectPlan(bestDonors, bestAcceptors, estimations);
+            return new ProjectPlan(estimations);
         }
 
         private IDictionary<Channel, double> GetVEstimation(FloodSeries floodSeries)
