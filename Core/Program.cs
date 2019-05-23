@@ -10,7 +10,7 @@ namespace Core
     {
         private static void TestChannels()
         {
-            var channelsTree = CgInteraction.ReadChannelsTreeFromCg(Dir.Data("channels.cg"));
+            var channelsTree = CgInteraction.ReadChannelsTreeFromCg(Dir.Data("channels_all.cg"));
             CgInteraction.WriteChannelsTreeToCg(Dir.Data("channels_copy.cg"), channelsTree);
             var bitmap = Drawing.DrawBitmap(944, 944, g =>
             {
@@ -32,7 +32,8 @@ namespace Core
 
         static void Main(string[] args)
         {
-            TestFloodSeries();
+            // TestFloodSeries();
+            TestChannels();
         }
     }
 }

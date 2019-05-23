@@ -5,12 +5,14 @@ namespace Core.Channels
     public class ChannelsTree
     {
         public Channel Root { get; }
+        public IDictionary<Channel, Channel> ParentOf { get; } = new Dictionary<Channel, Channel>();
 
         public delegate void ChannelsVisitor(Channel channel);
 
         public ChannelsTree(Channel root)
         {
             Root = root;
+            BuildParentOf();
         }
 
         public IEnumerable<Channel> GetAllChannels() 
@@ -21,7 +23,7 @@ namespace Core.Channels
                 result.Add(channel);
             });
             return result;
-        } 
+        }
 
         public void VisitChannelsFromTop(ChannelsVisitor visitor)
         {
@@ -33,26 +35,45 @@ namespace Core.Channels
             VisitChannelsFromTopRec(baseChannel, visitor);
         }
 
-        private void VisitChannelsFromTopRec(Channel channel, ChannelsVisitor visitor)
-        {
-            visitor(channel);
-            for (int i = 0; i < channel.Children.Count; i++)
-            {
-                VisitChannelsFromTopRec(channel.Children[i], visitor);
-            }
-        }
-
         public void VisitChannelsFromBottom(ChannelsVisitor visitor)
         {
             VisitChannelsFromBottomRec(Root, visitor);
         }
 
+        private void BuildParentOf()
+        {
+            BuildParentOfRec(Root, null);
+        }
+
+        private void BuildParentOfRec(Channel channel, Channel parent)
+        {
+            if (parent != null)
+            {
+                ParentOf[channel] = parent;
+            }
+
+            foreach (var child in channel.Children)
+            {
+                BuildParentOfRec(child, channel);
+            }
+        }
+
+        private void VisitChannelsFromTopRec(Channel channel, ChannelsVisitor visitor)
+        {
+            visitor(channel);
+            foreach (var child in channel.Children)
+            {
+                VisitChannelsFromTopRec(child, visitor);
+            }
+        }
+
         private void VisitChannelsFromBottomRec(Channel channel, ChannelsVisitor visitor)
         {
-            for (int i = 0; i < channel.Children.Count; i++)
+            foreach (var child in channel.Children)
             {
-                VisitChannelsFromBottomRec(channel.Children[i], visitor);
+                VisitChannelsFromBottomRec(child, visitor);
             }
+
             visitor(channel);
         }
     }

@@ -17,7 +17,7 @@ namespace Core.Channels
                     var parts = sr.ReadLine().Split(' ');
                     var channelId = long.Parse(parts[0]);
                     var pointsCount = int.Parse(parts[1]);
-                    var channel = new Channel(null, channelId);
+                    var channel = new Channel(channelId);
                     for (var j = 0; j < pointsCount; j++)
                     {
                         var pointParts = sr.ReadLine().Split(' ');
@@ -36,7 +36,6 @@ namespace Core.Channels
                     var parent = channelsDict[parentId];
                     var child = channelsDict[childId];
                     parent.Children.Add(child);
-                    child.Parent = parent;
                 }
             }
             var tree = new ChannelsTree(channelsDict[1]);

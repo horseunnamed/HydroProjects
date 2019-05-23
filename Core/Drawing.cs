@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using Core.Channels;
 using Core.Grid;
 
@@ -30,13 +31,21 @@ namespace Core
             }
         }
 
-        public static void DrawChannels(Graphics graphics, IEnumerable<Channel> channels, Brush brush)
+        public static void DrawChannels(Graphics graphics, IEnumerable<Channel> channels, Brush brush, bool withOrigins = false)
         {
             foreach (var channel in channels)
             {
                 foreach (var p in channel.Points)
                 {
                     graphics.FillRectangle(brush, p.X, p.Y, 1, 1);
+                }
+                if (withOrigins)
+                {
+                    if (channel.Points.Count > 0)
+                    {
+                        var origin = channel.Points[0];
+                        graphics.FillRectangle(new SolidBrush(Color.Red), origin.X, origin.Y, 1, 1);
+                    }
                 }
             }
         }

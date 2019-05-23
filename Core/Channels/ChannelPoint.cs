@@ -18,8 +18,7 @@
 
         public override bool Equals(object obj)
         {
-            var point = obj as ChannelPoint;
-            return point != null &&
+            return obj is ChannelPoint point &&
                    X == point.X &&
                    Y == point.Y;
         }

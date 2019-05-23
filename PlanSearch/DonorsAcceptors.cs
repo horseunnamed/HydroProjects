@@ -147,7 +147,7 @@ namespace PlanSearch
                 transAcceptors.UnionWith(GetChannelsPathTo(channel));
             }
             _channelsTree.VisitChannelsFromTop(channel => {
-                var parent = channel.Parent;
+                var parent = _channelsTree.ParentOf[channel];
                 if (
                         IsAllowedToBeDonor(channel) &&
                         transAcceptors.Contains(parent) && 
@@ -160,7 +160,7 @@ namespace PlanSearch
             return result;
         }
 
-        private static IEnumerable<Channel> GetChannelsPathTo(Channel channel)
+        private IEnumerable<Channel> GetChannelsPathTo(Channel channel)
         {
             if (channel == null)
             {
@@ -168,7 +168,7 @@ namespace PlanSearch
             }
 
             var result = new HashSet<Channel> {channel};
-            result.UnionWith(GetChannelsPathTo(channel.Parent));
+            result.UnionWith(GetChannelsPathTo(_channelsTree.ParentOf[channel]));
             return result;
         }
 
