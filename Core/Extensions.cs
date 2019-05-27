@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Core
 {
@@ -31,5 +32,11 @@ namespace Core
                 }
             }
         }
+
+        public static TV GetValue<TK, TV>(this IDictionary<TK, TV> dict, TK key, TV defaultValue = default(TV))
+        {
+            return dict.TryGetValue(key, out var value) ? value : defaultValue;
+        }
+
     }
 }

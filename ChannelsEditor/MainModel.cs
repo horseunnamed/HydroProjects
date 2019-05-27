@@ -25,9 +25,39 @@ namespace ChannelsEditor
 
         public Channel GetChannelAt(ChannelPoint point)
         {
-            if (_pointsToChannels.ContainsKey(point))
+            var searchRadius = 10;
+
+            for (var r = 1; r <= searchRadius; r++)
             {
-                return _pointsToChannels[point];
+                for (var xi = point.X - r; xi <= point.X + r; xi++)
+                {
+                    var channel = _pointsToChannels.GetValue(new ChannelPoint(xi, point.Y + r));
+                    if (channel != null)
+                    {
+                        return channel;
+                    }
+
+                    channel = _pointsToChannels.GetValue(new ChannelPoint(xi, point.Y - r));
+                    if (channel != null)
+                    {
+                        return channel;
+                    }
+                }
+
+                for (var yi = point.Y - r; yi <= point.Y + r; yi++)
+                {
+                    var channel = _pointsToChannels.GetValue(new ChannelPoint(point.X + r, yi));
+                    if (channel != null)
+                    {
+                        return channel;
+                    }
+                    channel = _pointsToChannels.GetValue(new ChannelPoint(point.X - r, yi));
+                    if (channel != null)
+                    {
+                        return channel;
+                    }
+                }
+
             }
 
             return null;
