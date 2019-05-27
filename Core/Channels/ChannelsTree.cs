@@ -5,7 +5,7 @@ namespace Core.Channels
     public class ChannelsTree
     {
         public Channel Root { get; }
-        public IDictionary<Channel, Channel> ParentOf { get; } = new Dictionary<Channel, Channel>();
+        private IDictionary<Channel, Channel> ParentOf { get; } = new Dictionary<Channel, Channel>();
 
         public delegate void ChannelsVisitor(Channel channel);
 
@@ -13,6 +13,11 @@ namespace Core.Channels
         {
             Root = root;
             BuildParentOf();
+        }
+
+        public Channel GetParentOf(Channel channel)
+        {
+            return ParentOf.ContainsKey(channel) ? ParentOf[channel] : null;
         }
 
         public IEnumerable<Channel> GetAllChannels() 

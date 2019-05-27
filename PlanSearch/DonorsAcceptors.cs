@@ -20,7 +20,8 @@ namespace PlanSearch
         private readonly RatingStrategy _strategy;
         private readonly ChannelsTree _channelsTree;
         private readonly IDictionary<Channel, List<(int, int)>> _channelZones;
-        private readonly IDictionary<Channel, double> _targetValues;
+        private readonly IDictionary<Channel, ISet<(int, int)>> _targetCells;
+        private readonly IDictionary<Channel, double> _ratingValues;
         private readonly IList<(double, Channel)> _targetRating;
         private readonly IDictionary<Channel, double> _vEstimation;
 
@@ -31,8 +32,9 @@ namespace PlanSearch
             _maxS = maxS;
 
             _channelZones = GetChannelZones(ecoTargetMap.Width, ecoTargetMap.Height);
-            _targetValues = GetTargetValues(ecoTargetMap);
-            _targetRating = ToRating(_targetValues);
+            _targetCells = GetTargetCells(ecoTargetMap);
+            _ratingValues = GetRatingValues(ecoTargetMap);
+            _targetRating = ToRating(_ratingValues);
             _vEstimation = GetVEstimation(floodSeries);
         }
 
@@ -48,8 +50,18 @@ namespace PlanSearch
                 var totalPrice = optimalDonors
                     .Select(donor => cofinanceInfo.ChannelsPrices[donor.Channel])
                     .Sum();
-                estimations.Add(new ProjectPlan.Estimation(s, optimalDonors.Count, potentialDonors.Count, totalEffect, totalPrice,
-                    new HashSet<Channel>(optimalDonors.Select(donor => donor.Channel)), acceptors));
+                estimations.Add(
+                    new ProjectPlan.Estimation( 
+                        s: s, 
+                        optimalDonorsCount: optimalDonors.Count, 
+                        potentialDonorsCount: potentialDonors.Count, 
+                        totalEffect: totalEffect, 
+                        totalPrice: totalPrice,
+                        donors: new HashSet<Channel>(optimalDonors.Select(donor => donor.Channel)),
+                        acceptors: acceptors, 
+                        acceptorsTargetValue: GetTargetsCountFor(acceptors)
+                    )
+                );
             }
             return new ProjectPlan(estimations);
         }
@@ -71,6 +83,7 @@ namespace PlanSearch
                         sumV += Math.Sqrt(vx * vx + vy * vy) * h * 24 * 60 * 60 / 1e6;
                     }
                 }
+
                 result[channel] = Math.Max(sumV - channel.Points.Count * 2 * 50 * 50 / 1e6, 0);
             });
             return result;
@@ -108,26 +121,49 @@ namespace PlanSearch
             return result;
         }
 
-        private double GetChannelTargetValue(Channel channel, GridMap targetMap)
+        private IDictionary<Channel, ISet<(int, int)>> GetTargetCells(GridMap ecoTargetMap)
         {
-            var targetCount = 0;
-            var zone = _channelZones[channel];
-            foreach (var (x, y) in zone)
+            var result = new Dictionary<Channel, ISet<(int, int)>>();
+            foreach (var channelZone in _channelZones)
             {
-                // ReSharper disable once CompareOfFloatsByEqualityOperator
-                if (targetMap[x, y] == TargetCell)
+                var zoneTargetCells = new HashSet<(int, int)>();
+                foreach (var (x, y) in channelZone.Value)
                 {
-                    targetCount++;
+                    // ReSharper disable once CompareOfFloatsByEqualityOperator
+                    if (ecoTargetMap[x, y] == TargetCell)
+                    {
+                        zoneTargetCells.Add((x, y));
+                    }
                 }
+
+                result[channelZone.Key] = zoneTargetCells;
             }
-            var targetRatio = zone.Count > 0 && channel.Points.Count > 10 ? (double) targetCount / zone.Count : 0;
+
+            return result;
+        }
+
+        private int GetTargetsCountFor(ISet<Channel> acceptors)
+        {
+            var allTargets = new HashSet<(int, int)>();
+            foreach (var acceptor in acceptors)
+            {
+                allTargets.UnionWith(_targetCells[acceptor]);
+            }
+            return allTargets.Count;
+        }
+
+        private double GetChannelRatingValue(Channel channel, GridMap targetMap)
+        {
+            var targetCount = _targetCells[channel].Count;
+            var zoneSize = _channelZones[channel].Count;
+            var targetRatio = zoneSize > 0 ? (double) targetCount / zoneSize : 0;
             return _strategy == RatingStrategy.TargetCount ? targetCount : targetRatio;
         }
 
-        private IDictionary<Channel, double> GetTargetValues(GridMap targetMap)
+        private IDictionary<Channel, double> GetRatingValues(GridMap targetMap)
         {
             var result = new Dictionary<Channel, double>();
-            _channelsTree.VisitChannelsFromTop(channel => { result[channel] = GetChannelTargetValue(channel, targetMap); });
+            _channelsTree.VisitChannelsFromTop(channel => { result[channel] = GetChannelRatingValue(channel, targetMap); });
             return result;
         }
 
@@ -147,8 +183,9 @@ namespace PlanSearch
                 transAcceptors.UnionWith(GetChannelsPathTo(channel));
             }
             _channelsTree.VisitChannelsFromTop(channel => {
-                var parent = _channelsTree.ParentOf[channel];
+                var parent = _channelsTree.GetParentOf(channel);
                 if (
+                        parent != null &&
                         IsAllowedToBeDonor(channel) &&
                         transAcceptors.Contains(parent) && 
                         !transAcceptors.Contains(channel)
@@ -162,19 +199,19 @@ namespace PlanSearch
 
         private IEnumerable<Channel> GetChannelsPathTo(Channel channel)
         {
-            if (channel == null)
+            if (channel == _channelsTree.Root)
             {
                 return new HashSet<Channel>();
             }
 
             var result = new HashSet<Channel> {channel};
-            result.UnionWith(GetChannelsPathTo(_channelsTree.ParentOf[channel]));
+            result.UnionWith(GetChannelsPathTo(_channelsTree.GetParentOf(channel)));
             return result;
         }
 
         private bool IsAllowedToBeDonor(Channel channel)
         {
-            var targetValue = _targetValues[channel];
+            var targetValue = _ratingValues[channel];
             if (_strategy == RatingStrategy.TargetCount)
             {
                 return targetValue < channel.Points.Count * 2;

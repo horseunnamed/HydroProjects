@@ -33,11 +33,12 @@ namespace PlanSearch
             public int PotentialDonorsCount { get; }
             public double TotalEffect { get; }
             public double TotalPrice { get; }
+            public double AcceptorsTargetValue { get; }
             public ISet<Channel> Donors { get; }
             public ISet<Channel> Acceptors { get; }
 
             public Estimation(int s, int optimalDonorsCount, int potentialDonorsCount, double totalEffect,
-                double totalPrice, ISet<Channel> donors, ISet<Channel> acceptors)
+                double totalPrice, ISet<Channel> donors, ISet<Channel> acceptors, double acceptorsTargetValue)
             {
                 S = s;
                 OptimalDonorsCount = optimalDonorsCount;
@@ -46,6 +47,7 @@ namespace PlanSearch
                 TotalPrice = totalPrice;
                 Donors = donors ?? throw new ArgumentNullException(nameof(donors));
                 Acceptors = acceptors ?? throw new ArgumentNullException(nameof(acceptors));
+                AcceptorsTargetValue = acceptorsTargetValue;
             }
         }
     }
