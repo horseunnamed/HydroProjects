@@ -44,6 +44,7 @@ namespace Core
                     if (channel.Points.Count > 0)
                     {
                         var origin = channel.Points[0];
+                        // graphics.DrawEllipse(new Pen(Color.Blue), origin.X - 2, origin.Y - 2, 4, 4);
                         graphics.FillRectangle(new SolidBrush(Color.Red), origin.X, origin.Y, 1, 1);
                     }
                 }

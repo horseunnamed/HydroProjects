@@ -8,6 +8,7 @@ namespace Core.Channels
         private IDictionary<Channel, Channel> ParentOf { get; } = new Dictionary<Channel, Channel>();
 
         public delegate void ChannelsVisitor(Channel channel);
+        public delegate void ChannelsDepthVisitor(Channel channel, int depth);
 
         public ChannelsTree(Channel root)
         {
@@ -35,9 +36,9 @@ namespace Core.Channels
             VisitChannelsFromTopRec(Root, visitor);
         }
 
-        public void VisitChannelsFromTop(Channel baseChannel, ChannelsVisitor visitor)
+        public void VisitChannelsDepthFromTop(Channel baseChannel, ChannelsDepthVisitor visitor)
         {
-            VisitChannelsFromTopRec(baseChannel, visitor);
+            VisitChannelsDepthFromTopRec(baseChannel, 0, visitor);
         }
 
         public void VisitChannelsFromBottom(ChannelsVisitor visitor)
@@ -80,6 +81,15 @@ namespace Core.Channels
             }
 
             visitor(channel);
+        }
+
+        private void VisitChannelsDepthFromTopRec(Channel channel, int depth, ChannelsDepthVisitor visitor)
+        {
+            visitor(channel, depth);
+            foreach (var child in channel.Children)
+            {
+                VisitChannelsDepthFromTopRec(child, depth + 1, visitor);
+            }
         }
     }
 }

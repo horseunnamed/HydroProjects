@@ -35,12 +35,31 @@ namespace ChannelsEditor
 
         public Bitmap DrawChannels(Channel selectedChannel)
         {
+            var selectedSubChildren = new List<Channel>();
+            if (selectedChannel != null)
+            {
+                _channelsTree.VisitChannelsDepthFromTop(selectedChannel, (channel, depth) =>
+                {
+                    if (depth > 0)
+                    {
+                        selectedSubChildren.Add(channel);
+                    }
+                });
+            }
             var bitmap = Drawing.DrawBitmap(944, 944, g =>
             {
                 Drawing.DrawChannels(g, _channelsTree.GetAllChannels(), new SolidBrush(Color.Black));
                 if (selectedChannel != null)
                 {
-                    Drawing.DrawChannels(g, new List<Channel> { selectedChannel }, new SolidBrush(Color.LawnGreen));
+                    Drawing.DrawChannels(g, new List<Channel> { selectedChannel }, new SolidBrush(Color.LawnGreen), true);
+                    Drawing.DrawChannels(g, selectedSubChildren, new SolidBrush(Color.DodgerBlue), true);
+                    var selectedParent = _channelsTree.GetParentOf(selectedChannel);
+/*
+                    if (selectedParent != null)
+                    {
+                        Drawing.DrawChannels(g, new List<Channel> { selectedParent }, new SolidBrush(Color.Yellow));
+                    }
+*/
                 }
             });
             return bitmap;
