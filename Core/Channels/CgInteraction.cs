@@ -64,9 +64,9 @@ namespace Core.Channels
                 }
             });
             resultBuilder.AppendLine($"{channelsCount}");
-            resultBuilder.Append(pointsBuilder.ToString());
+            resultBuilder.Append(pointsBuilder);
             resultBuilder.AppendLine($"{connectionsCount}");
-            resultBuilder.Append(connectionsBuilder.ToString());
+            resultBuilder.Append(connectionsBuilder);
             File.WriteAllText(filename, resultBuilder.ToString());
         }
     }

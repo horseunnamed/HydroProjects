@@ -233,7 +233,7 @@ namespace ChannelsRestoration
             var newId = 0L; 
 
             // start numeration of new channels without intersections with old channels
-            channelsTree.VisitChannelsFromTop(channel => { newId = Math.Max(channel.Id, newId); });
+            channelsTree.VisitChannelsFromTop(channel => { newId = Math.Max(channel.Id, newId) + 1; });
 
             channelsTree.VisitChannelsFromTop(channel =>
             {
@@ -290,16 +290,16 @@ namespace ChannelsRestoration
             var channels = CgInteraction.ReadChannelsTreeFromCg(Dir.Data("channels_all.cg"));
             RestoreHoles(channels);
             RestoreChildren(channels);
-            RestoreHoles(channels);
             CheckChannels(channels);
+            CgInteraction.WriteChannelsTreeToCg(Dir.Data("channels.cg"), channels);
             BinarizeChannels(channels);
             var bitmap = Drawing.DrawBitmap(944, 944, g =>
             {
                 Drawing.DrawChannels(g, channels.GetAllChannels(), new SolidBrush(Color.Black), true);
             });
             bitmap.Save(Dir.Data("restoration_debug.png"));
+            Console.WriteLine(channels.GetAllChannels().Count());
             CgInteraction.WriteChannelsTreeToCg(Dir.Data("channels_binarized.cg"), channels);
-            Console.ReadKey();
         }
     }
 }
