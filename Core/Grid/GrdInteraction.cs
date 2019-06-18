@@ -54,7 +54,7 @@ namespace Core.Grid
                     var vyEntry = archive.GetEntry(GetEntryNameForMap("vy", day));
                     var vyMap = ReadGridMapFromStream(vyEntry?.Open());
 
-                    floodDays.Add(new FloodDay(hMap, vxMap, vyMap));
+                    floodDays.Add(new FloodDay(day, hMap, vxMap, vyMap));
                 }
             }
 

@@ -15,15 +15,17 @@ namespace Core.Grid
 
     public class FloodDay
     {
+        public int T { get; }
         public GridMap HMap { get; }
         public GridMap VxMap { get; }
         public GridMap VyMap { get; }
 
-        public FloodDay(GridMap hMap, GridMap vxMap, GridMap vyMap)
+        public FloodDay(int t, GridMap hMap, GridMap vxMap, GridMap vyMap)
         {
-            HMap = hMap ?? throw new ArgumentNullException(nameof(hMap));
-            VxMap = vxMap ?? throw new ArgumentNullException(nameof(vxMap));
-            VyMap = vyMap ?? throw new ArgumentNullException(nameof(vyMap));
+            T = t;
+            HMap = hMap;
+            VxMap = vxMap;
+            VyMap = vyMap;
         }
     }
 }

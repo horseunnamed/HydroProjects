@@ -225,8 +225,7 @@ namespace PlanSearch
 
         private GridMap CreateGridMapForZonesOf(IEnumerable<Channel> channels)
         {
-            var gridMap = new GridMap(_ecoTargetMap.Width, _ecoTargetMap.Height, _ecoTargetMap.MinX, 
-                _ecoTargetMap.MaxX, _ecoTargetMap.MinY, _ecoTargetMap.MaxY, 0);
+            var gridMap = GridMap.CreateByParamsOf(_ecoTargetMap, 0);
             foreach (var channel in channels)
             {
                 var zone = _channelZones[channel];

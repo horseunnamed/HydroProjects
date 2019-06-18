@@ -94,6 +94,11 @@ namespace Core.Grid
                 MinY + y0 * dY, MinY + (h + y0 - 1) * dY);
         }
 
+        public static GridMap CreateByParamsOf(GridMap otherMap, double initialValue = 0)
+        {
+            return new GridMap(otherMap.Width, otherMap.Height, otherMap.MinX, otherMap.MaxX, otherMap.MinY, otherMap.MaxY, initialValue);
+        }
+
         public GridMap Copy()
         {
             return new GridMap(Values.Clone() as double[,], MinX, MaxX, MinY, MaxY);
