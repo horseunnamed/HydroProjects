@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Core.Channels;
 using Core.Grid;
 
@@ -61,9 +62,18 @@ namespace Core
 
         public static void DrawGridMapValues(Graphics graphics, GridMap gridMap, double value, Brush brush)
         {
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            DrawGridMapValues(graphics, gridMap, (x, y, v) => v == value, brush);
+        }
+
+
+        public delegate bool GridMapCellsSelector(int x, int y, double value);
+
+        public static void DrawGridMapValues(Graphics graphics, GridMap gridMap, GridMapCellsSelector selector, Brush brush)
+        {
             gridMap.Values.Visit((v, x, y) =>
             {
-                if (Math.Abs(v - value) < 1e-10)
+                if (selector(x, y, v))
                 {
                     graphics.FillRectangle(brush, x, y, 1, 1);
                 }

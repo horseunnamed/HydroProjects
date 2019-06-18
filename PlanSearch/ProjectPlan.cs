@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Channels;
+using Core.Grid;
 
 namespace PlanSearch
 {
@@ -36,18 +37,22 @@ namespace PlanSearch
             public double AcceptorsTargetValue { get; }
             public ISet<Channel> Donors { get; }
             public ISet<Channel> Acceptors { get; }
+            public GridMap AcceptorZonesMap { get; }
+            public GridMap DonorZonesMap { get; }
 
-            public Estimation(int s, int optimalDonorsCount, int potentialDonorsCount, double totalEffect,
-                double totalPrice, ISet<Channel> donors, ISet<Channel> acceptors, double acceptorsTargetValue)
+            public Estimation(int s, int optimalDonorsCount, int potentialDonorsCount, double totalEffect, 
+                double totalPrice, double acceptorsTargetValue, ISet<Channel> donors, ISet<Channel> acceptors, GridMap acceptorZonesMap, GridMap donorZonesMap)
             {
                 S = s;
                 OptimalDonorsCount = optimalDonorsCount;
                 PotentialDonorsCount = potentialDonorsCount;
                 TotalEffect = totalEffect;
                 TotalPrice = totalPrice;
-                Donors = donors ?? throw new ArgumentNullException(nameof(donors));
-                Acceptors = acceptors ?? throw new ArgumentNullException(nameof(acceptors));
                 AcceptorsTargetValue = acceptorsTargetValue;
+                Donors = donors;
+                Acceptors = acceptors;
+                AcceptorZonesMap = acceptorZonesMap;
+                DonorZonesMap = donorZonesMap;
             }
         }
     }

@@ -24,12 +24,14 @@ namespace PlanSearch
         private readonly IDictionary<Channel, double> _ratingValues;
         private readonly IList<(double, Channel)> _targetRating;
         private readonly IDictionary<Channel, double> _vEstimation;
+        private readonly GridMap _ecoTargetMap;
 
         public DonorsAcceptors(RatingStrategy strategy, ChannelsTree channelsTree, GridMap ecoTargetMap, FloodSeries floodSeries, int maxS=100)
         {
             _strategy = strategy;
             _channelsTree = channelsTree ?? throw new ArgumentNullException(nameof(channelsTree));
             _maxS = maxS;
+            _ecoTargetMap = ecoTargetMap;
 
             _channelZones = GetChannelZones(ecoTargetMap.Width, ecoTargetMap.Height);
             _targetCells = GetTargetCells(ecoTargetMap);
@@ -59,7 +61,9 @@ namespace PlanSearch
                         totalPrice: totalPrice,
                         donors: new HashSet<Channel>(optimalDonors.Select(donor => donor.Channel)),
                         acceptors: acceptors, 
-                        acceptorsTargetValue: GetTargetsCountFor(acceptors)
+                        acceptorsTargetValue: GetTargetsCountFor(acceptors),
+                        acceptorZonesMap: CreateGridMapForZonesOf(acceptors),
+                        donorZonesMap: CreateGridMapForZonesOf(optimalDonors.Select(donor => donor.Channel))
                     )
                 );
             }
@@ -217,6 +221,22 @@ namespace PlanSearch
                 return targetValue < channel.Points.Count * 2;
             }
             return targetValue < 0.5;
+        }
+
+        private GridMap CreateGridMapForZonesOf(IEnumerable<Channel> channels)
+        {
+            var gridMap = new GridMap(_ecoTargetMap.Width, _ecoTargetMap.Height, _ecoTargetMap.MinX, 
+                _ecoTargetMap.MaxX, _ecoTargetMap.MinY, _ecoTargetMap.MaxY, 0);
+            foreach (var channel in channels)
+            {
+                var zone = _channelZones[channel];
+                foreach (var (x, y) in zone)
+                {
+                    gridMap[x - 1, y - 1] = channel.Id;
+                }
+            }
+
+            return gridMap;
         }
     }
 }
