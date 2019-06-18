@@ -6,6 +6,7 @@ namespace Core.Channels
     {
         public Channel Root { get; }
         private IDictionary<Channel, Channel> ParentOf { get; } = new Dictionary<Channel, Channel>();
+        private IDictionary<long, Channel> ChannelsById { get; } = new Dictionary<long, Channel>();
 
         public delegate void ChannelsVisitor(Channel channel);
         public delegate void ChannelsDepthVisitor(Channel channel, int depth);
@@ -13,12 +14,18 @@ namespace Core.Channels
         public ChannelsTree(Channel root)
         {
             Root = root;
+            BuildChannelsById();
             BuildParentOf();
         }
 
         public Channel GetParentOf(Channel channel)
         {
             return ParentOf.ContainsKey(channel) ? ParentOf[channel] : null;
+        }
+
+        public Channel GetChannelById(long id)
+        {
+            return ChannelsById[id];
         }
 
         public IEnumerable<Channel> GetAllChannels() 
@@ -44,6 +51,11 @@ namespace Core.Channels
         public void VisitChannelsFromBottom(ChannelsVisitor visitor)
         {
             VisitChannelsFromBottomRec(Root, visitor);
+        }
+
+        private void BuildChannelsById()
+        {
+            VisitChannelsFromTop(channel => { ChannelsById[channel.Id] = channel; });
         }
 
         private void BuildParentOf()

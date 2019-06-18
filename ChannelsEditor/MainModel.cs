@@ -23,6 +23,11 @@ namespace ChannelsEditor
             });
         }
 
+        public Channel GetChannelById(long id)
+        {
+            return _channelsTree.GetChannelById(id);
+        }
+
         public Channel GetChannelAt(ChannelPoint point)
         {
             var searchRadius = 10;

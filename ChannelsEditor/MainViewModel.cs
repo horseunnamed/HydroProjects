@@ -82,9 +82,10 @@ namespace ChannelsEditor
 
         private string CreateStatusMessage(long? selectedChannelId)
         {
-            if (selectedChannelId != null)
+            if (selectedChannelId.HasValue)
             {
-                return $@"Selected channel ID: {selectedChannelId}";
+                var channel = _model.GetChannelById(selectedChannelId.Value);
+                return $@"Selected channel ID: {selectedChannelId}, Origin: (X = {channel.Points[0].X}, Y = {channel.Points[0].Y})";
             }
 
             return "";
