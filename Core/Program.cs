@@ -30,10 +30,17 @@ namespace Core
             Console.ReadKey();
         }
 
+        private static void TestGrdReadWrite()
+        {
+            var relief = GrdInteraction.ReadGridMapFromGrd(Dir.Data("relief.grd"));
+            GrdInteraction.WriteGridMapToGrd(Dir.Data("relief_copy.grd"), relief);
+        }
+
         static void Main(string[] args)
         {
+            TestGrdReadWrite();
             // TestFloodSeries();
-            TestChannels();
+            // TestChannels();
         }
     }
 }

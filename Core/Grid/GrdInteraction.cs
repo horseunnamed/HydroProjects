@@ -18,8 +18,8 @@ namespace Core.Grid
             using (var binWriter = new BinaryWriter(fs))
             {
                 binWriter.Write(new[] { 'D', 'S', 'B', 'B' });
-                binWriter.Write((short)map.Width);
-                binWriter.Write((short)map.Height);
+                binWriter.Write((short) map.Width);
+                binWriter.Write((short) map.Height);
                 binWriter.Write(map.MinX);
                 binWriter.Write(map.MaxX);
                 binWriter.Write(map.MinY);
@@ -31,7 +31,7 @@ namespace Core.Grid
                 {
                     for (int x = 0; x < map.Width; x++)
                     {
-                        binWriter.Write(map[x, y]);
+                        binWriter.Write((float) map[x, y]);
                     }
                 }
             }
