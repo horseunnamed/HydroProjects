@@ -121,9 +121,9 @@ namespace PlanSearch
             bitmap.Save($"{dir}/floodmap.png");
         }
 
-        private static void DrawFloodMapSeries()
+        private static void DrawFloodMapSeries(int q)
         {
-            var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(Dir.Data("flood/17.zip"), 10, 39);
+            var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(Dir.Data($"flood/{q}.zip"), 0, 24);
 
             foreach (var floodDay in floodSeries.Days)
             {
@@ -153,38 +153,59 @@ namespace PlanSearch
                 .Select(est => (est.S, est.Donors));
         }
 
-        private static void TestDonorsAcceptors(int q, DonorsAcceptors.RatingStrategy ratingStrategy)
+        private static void TestDonorsAcceptors(int q, int t0, int t1)
         {
             var relief = GrdInteraction.ReadGridMapFromGrd(Dir.Data("relief.grd"));
             var ecoTargetMap =
                 GrdInteraction.ReadGridMapFromGrd(Dir.Data("frequencies/add_frequency_from_0,65_to_0,85.grd"));
             var channelsTree = CgInteraction.ReadChannelsTreeFromCg(Dir.Data("channels_binarized.cg"));
-            var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(Dir.Data($"flood/{q}.zip"), 10, 39);
+            var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(Dir.Data($"flood/{q}.zip"), t0, t1);
             var cofinanceInfo = GenerateCofinanceInfo(channelsTree.GetAllChannels());
 
             var baseOutputDir = Dir.Data($"test_donors/Q={q}");
+            var drawingsDir = $"{baseOutputDir}/drawings";
+            var mapsDir = $"{baseOutputDir}/maps";
+
+            Dir.RequireDirectory(Dir.Data(baseOutputDir));
+            Dir.RequireDirectory(Dir.Data(drawingsDir));
+            Dir.RequireDirectory(Dir.Data(mapsDir));
 
             DrawFloodMapWithTargets(floodSeries, ecoTargetMap, baseOutputDir);
 
-            var ratingStratName = ratingStrategy == DonorsAcceptors.RatingStrategy.TargetRatio ? "ratio" : "count";
-            var outputDir = $"{baseOutputDir}/{ratingStratName}";
-
-            var donorsAcceptors = new DonorsAcceptors(ratingStrategy, channelsTree, ecoTargetMap, floodSeries, 150);
-            var projectPlan = donorsAcceptors.Run(cofinanceInfo);
-            WriteProjectPlanToCsv(projectPlan, Dir.Data($"{outputDir}/donors_estimation.csv"));
-            DrawProjectPlan(projectPlan, channelsTree.GetAllChannels(), ecoTargetMap, $"{outputDir}/draw");
-            var uniqueDonorsSets = GetUniqueSetsOfDonors(projectPlan);
-            foreach (var donorsSet in uniqueDonorsSets)
+            var strategies = new[]
             {
-                SetDamsFor(donorsSet.Item2, relief, $"{outputDir}/maps/s={donorsSet.Item1}.grd");
+                (DonorsAcceptors.RatingStrategy.TargetCount, "count"), 
+                (DonorsAcceptors.RatingStrategy.TargetRatio, "ratio")
+            };
+
+            foreach (var (strategy, strategyName) in strategies)
+            {
+                var strategyDrawingsDir = $"{drawingsDir}/{strategyName}";
+                var strategyMapsDir = $"{mapsDir}/{strategyName}";
+
+                Dir.RequireDirectory(Dir.Data(strategyDrawingsDir));
+                Dir.RequireDirectory(Dir.Data(strategyMapsDir));
+
+                var donorsAcceptors = new DonorsAcceptors(strategy, channelsTree, ecoTargetMap, floodSeries, 150);
+                var projectPlan = donorsAcceptors.Run(cofinanceInfo);
+
+                WriteProjectPlanToCsv(projectPlan, Dir.Data($"{baseOutputDir}/{strategyName}.csv"));
+
+                DrawProjectPlan(projectPlan, channelsTree.GetAllChannels(), ecoTargetMap, strategyDrawingsDir);
+                var uniqueDonorsSets = GetUniqueSetsOfDonors(projectPlan);
+                foreach (var donorsSet in uniqueDonorsSets)
+                {
+                    SetDamsFor(donorsSet.Item2, relief, $"{strategyMapsDir}/s={donorsSet.Item1}.grd");
+                }
             }
+
         }
 
         private static void Main()
         {
-            TestDonorsAcceptors(17, DonorsAcceptors.RatingStrategy.TargetCount);
+            TestDonorsAcceptors(23, 10, 23);
             // DrawFloodMapWithTargets();
-            // DrawFloodMapSeries();
+            // DrawFloodMapSeries(19);
             System.Console.WriteLine("Press any key to close...");
             System.Console.ReadKey();
         }

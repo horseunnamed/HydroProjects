@@ -84,7 +84,7 @@ namespace PlanSearch
                     }
                 }
 
-                result[channel] = Math.Max(sumV - channel.Points.Count * 2 * 50 * 50 / 1e6, 0);
+                result[channel] = sumV; // Math.Max(sumV - channel.Points.Count * 2 * 50 * 50 / 1e6, 0);
             });
             return result;
         }
