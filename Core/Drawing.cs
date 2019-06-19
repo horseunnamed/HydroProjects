@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using Core.Channels;
 using Core.Grid;
 
@@ -52,11 +50,11 @@ namespace Core
             }
         }
 
-        public static void DrawPoints(Graphics graphics, IEnumerable<Point> points, Brush brush)
+        public static void DrawPoints(Graphics graphics, IEnumerable<(int, int)> points, Brush brush)
         {
-            foreach (var p in points)
+            foreach (var (x, y) in points)
             {
-                graphics.FillRectangle(brush, p.X, p.Y, 1, 1);
+                graphics.FillRectangle(brush, x, y, 1, 1);
             }
         }
 

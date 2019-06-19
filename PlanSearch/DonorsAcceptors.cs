@@ -19,23 +19,21 @@ namespace PlanSearch
         private readonly int _maxS;
         private readonly RatingStrategy _strategy;
         private readonly ChannelsTree _channelsTree;
-        private readonly IDictionary<Channel, List<(int, int)>> _channelZones;
-        private readonly IDictionary<Channel, ISet<(int, int)>> _targetCells;
+        private readonly IDictionary<Channel, IEnumerable<(int, int)>> _channelZones;
+        private readonly IDictionary<Channel, IEnumerable<(int, int)>> _targetCells;
         private readonly IDictionary<Channel, double> _ratingValues;
         private readonly IList<(double, Channel)> _targetRating;
         private readonly IDictionary<Channel, double> _vEstimation;
-        private readonly GridMap _ecoTargetMap;
 
         public DonorsAcceptors(RatingStrategy strategy, ChannelsTree channelsTree, GridMap ecoTargetMap, FloodSeries floodSeries, int maxS=100)
         {
             _strategy = strategy;
             _channelsTree = channelsTree ?? throw new ArgumentNullException(nameof(channelsTree));
             _maxS = maxS;
-            _ecoTargetMap = ecoTargetMap;
 
             _channelZones = GetChannelZones(ecoTargetMap.Width, ecoTargetMap.Height);
             _targetCells = GetTargetCells(ecoTargetMap);
-            _ratingValues = GetRatingValues(ecoTargetMap);
+            _ratingValues = GetRatingValues();
             _targetRating = ToRating(_ratingValues);
             _vEstimation = GetVEstimation(floodSeries);
         }
@@ -61,13 +59,11 @@ namespace PlanSearch
                         totalPrice: totalPrice,
                         donors: new HashSet<Channel>(optimalDonors.Select(donor => donor.Channel)),
                         acceptors: acceptors, 
-                        acceptorsTargetValue: GetTargetsCountFor(acceptors),
-                        acceptorZonesMap: CreateGridMapForZonesOf(acceptors),
-                        donorZonesMap: CreateGridMapForZonesOf(optimalDonors.Select(donor => donor.Channel))
+                        acceptorsTargetValue: GetTargetsCountFor(acceptors)
                     )
                 );
             }
-            return new ProjectPlan(estimations);
+            return new ProjectPlan(_channelZones, estimations);
         }
 
         private IDictionary<Channel, double> GetVEstimation(FloodSeries floodSeries)
@@ -93,9 +89,9 @@ namespace PlanSearch
             return result;
         }
 
-        private IDictionary<Channel, List<(int, int)>> GetChannelZones(int mapW, int mapH)
+        private IDictionary<Channel, IEnumerable<(int, int)>> GetChannelZones(int mapW, int mapH)
         {
-            var result = new Dictionary<Channel, List<(int, int)>>();
+            var result = new Dictionary<Channel, IEnumerable<(int, int)>>();
             _channelsTree.VisitChannelsFromTop(channel =>
             {
                 var visited = new HashSet<(int, int)>();
@@ -125,12 +121,12 @@ namespace PlanSearch
             return result;
         }
 
-        private IDictionary<Channel, ISet<(int, int)>> GetTargetCells(GridMap ecoTargetMap)
+        private IDictionary<Channel, IEnumerable<(int, int)>> GetTargetCells(GridMap ecoTargetMap)
         {
-            var result = new Dictionary<Channel, ISet<(int, int)>>();
+            var result = new Dictionary<Channel, IEnumerable<(int, int)>>();
             foreach (var channelZone in _channelZones)
             {
-                var zoneTargetCells = new HashSet<(int, int)>();
+                var zoneTargetCells = new List<(int, int)>();
                 foreach (var (x, y) in channelZone.Value)
                 {
                     // ReSharper disable once CompareOfFloatsByEqualityOperator
@@ -156,18 +152,18 @@ namespace PlanSearch
             return allTargets.Count;
         }
 
-        private double GetChannelRatingValue(Channel channel, GridMap targetMap)
+        private double GetChannelRatingValue(Channel channel)
         {
-            var targetCount = _targetCells[channel].Count;
-            var zoneSize = _channelZones[channel].Count;
+            var targetCount = _targetCells[channel].Count();
+            var zoneSize = _channelZones[channel].Count();
             var targetRatio = zoneSize > 0 ? (double) targetCount / zoneSize : 0;
             return _strategy == RatingStrategy.TargetCount ? targetCount : targetRatio;
         }
 
-        private IDictionary<Channel, double> GetRatingValues(GridMap targetMap)
+        private IDictionary<Channel, double> GetRatingValues()
         {
             var result = new Dictionary<Channel, double>();
-            _channelsTree.VisitChannelsFromTop(channel => { result[channel] = GetChannelRatingValue(channel, targetMap); });
+            _channelsTree.VisitChannelsFromTop(channel => { result[channel] = GetChannelRatingValue(channel); });
             return result;
         }
 
@@ -223,6 +219,7 @@ namespace PlanSearch
             return targetValue < 0.5;
         }
 
+        /*
         private GridMap CreateGridMapForZonesOf(IEnumerable<Channel> channels)
         {
             var gridMap = GridMap.CreateByParamsOf(_ecoTargetMap, 0);
@@ -237,5 +234,6 @@ namespace PlanSearch
 
             return gridMap;
         }
+        */
     }
 }

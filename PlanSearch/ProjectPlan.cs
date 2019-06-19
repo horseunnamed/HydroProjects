@@ -8,10 +8,12 @@ namespace PlanSearch
     public class ProjectPlan
     { 
         public IList<Estimation> Estimations { get; }
+        public IDictionary<Channel, IEnumerable<(int, int)>> Zones;
 
-        public ProjectPlan(IList<Estimation> estimations)
+        public ProjectPlan(IDictionary<Channel, IEnumerable<(int, int)>> zones, IList<Estimation> estimations)
         {
-            Estimations = estimations ?? throw new ArgumentNullException(nameof(estimations));
+            Zones = zones;
+            Estimations = estimations;
         }
 
         public Estimation GetBestEstimation()
@@ -37,11 +39,9 @@ namespace PlanSearch
             public double AcceptorsTargetValue { get; }
             public ISet<Channel> Donors { get; }
             public ISet<Channel> Acceptors { get; }
-            public GridMap AcceptorZonesMap { get; }
-            public GridMap DonorZonesMap { get; }
 
             public Estimation(int s, int optimalDonorsCount, int potentialDonorsCount, double totalEffect, 
-                double totalPrice, double acceptorsTargetValue, ISet<Channel> donors, ISet<Channel> acceptors, GridMap acceptorZonesMap, GridMap donorZonesMap)
+                double totalPrice, double acceptorsTargetValue, ISet<Channel> donors, ISet<Channel> acceptors)
             {
                 S = s;
                 OptimalDonorsCount = optimalDonorsCount;
@@ -51,8 +51,6 @@ namespace PlanSearch
                 AcceptorsTargetValue = acceptorsTargetValue;
                 Donors = donors;
                 Acceptors = acceptors;
-                AcceptorZonesMap = acceptorZonesMap;
-                DonorZonesMap = donorZonesMap;
             }
         }
     }

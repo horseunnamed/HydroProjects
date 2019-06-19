@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
@@ -30,10 +29,15 @@ namespace PlanSearch
                 var bitmap = Drawing.DrawBitmap(944, 944, graphics =>
                 {
                     Drawing.DrawGridMapValues(graphics, targetMap, DonorsAcceptors.TargetCell, new SolidBrush(Color.PowderBlue));
-                    Drawing.DrawGridMapValues(graphics, estimation.AcceptorZonesMap, (x, y, v) => v != 0, new SolidBrush(Color.Aquamarine));
-                    Drawing.DrawGridMapValues(graphics, estimation.DonorZonesMap, (x, y, v) => v != 0, new SolidBrush(Color.HotPink));
+                    foreach (var acceptor in estimation.Acceptors)
+                    {
+                        Drawing.DrawPoints(graphics, plan.Zones[acceptor], new SolidBrush(Color.Aquamarine));
+                    }
+                    foreach (var donor in estimation.Donors)
+                    {
+                        Drawing.DrawPoints(graphics, plan.Zones[donor], new SolidBrush(Color.HotPink));
+                    }
                     Drawing.DrawChannels(graphics, allChannels, new SolidBrush(Color.Black));
-                    Drawing.DrawChannels(graphics, estimation.Acceptors, new SolidBrush(Color.LimeGreen));
                     Drawing.DrawChannels(graphics, estimation.Acceptors, new SolidBrush(Color.LimeGreen));
                     Drawing.DrawChannels(graphics, estimation.Donors, new SolidBrush(Color.Red));
                 });
@@ -81,7 +85,7 @@ namespace PlanSearch
 
         private static void DrawFloodMapWithTargets(FloodSeries floodSeries, GridMap ecoTargetMap, string dir)
         {
-            var floodMap = GridMap.CreateByParamsOf(ecoTargetMap, 0);
+            var floodMap = GridMap.CreateByParamsOf(ecoTargetMap);
             foreach (var floodDay in floodSeries.Days)
             {
                 var hMap = floodDay.HMap;
@@ -168,7 +172,7 @@ namespace PlanSearch
             var donorsAcceptors = new DonorsAcceptors(ratingStrategy, channelsTree, ecoTargetMap, floodSeries, 150);
             var projectPlan = donorsAcceptors.Run(cofinanceInfo);
             WriteProjectPlanToCsv(projectPlan, Dir.Data($"{outputDir}/donors_estimation.csv"));
-            // DrawProjectPlan(projectPlan, channelsTree.GetAllChannels(), ecoTargetMap, $"{outputDir}/draw");
+            DrawProjectPlan(projectPlan, channelsTree.GetAllChannels(), ecoTargetMap, $"{outputDir}/draw");
             var uniqueDonorsSets = GetUniqueSetsOfDonors(projectPlan);
             foreach (var donorsSet in uniqueDonorsSets)
             {
