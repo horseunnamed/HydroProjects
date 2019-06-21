@@ -121,9 +121,12 @@ namespace PlanSearch
             bitmap.Save($"{dir}/floodmap.png");
         }
 
-        private static void DrawFloodMapSeries(int q)
+        private static void DrawFloodMapSeries(string q)
         {
-            var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(Dir.Data($"flood/{q}.zip"), 0, 24);
+            var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(Dir.Data($"flood/{q}.zip"), 0, 13);
+
+            var outputDir = Dir.Data($"floodmap_vis/Q={q}"); 
+            Dir.RequireDirectory(outputDir);
 
             foreach (var floodDay in floodSeries.Days)
             {
@@ -132,7 +135,7 @@ namespace PlanSearch
                 {
                     Drawing.DrawGridMapValues(graphics, hMap, (x, y, v) => v > 0, new SolidBrush(Color.Blue));
                 });
-                bitmap.Save(Dir.Data($"floodmap_vis/{floodDay.T}_day.png"));
+                bitmap.Save(Dir.Data($"{outputDir}/{floodDay.T}_day.png"));
             }
         }
 
@@ -158,7 +161,7 @@ namespace PlanSearch
             var relief = GrdInteraction.ReadGridMapFromGrd(Dir.Data("relief.grd"));
             var ecoTargetMap =
                 GrdInteraction.ReadGridMapFromGrd(Dir.Data("frequencies/add_frequency_from_0,65_to_0,85.grd"));
-            var channelsTree = CgInteraction.ReadChannelsTreeFromCg(Dir.Data("channels_binarized.cg"));
+            var channelsTree = CgInteraction.ReadChannelsTreeFromCg(Dir.Data("channels_tree.cg"));
             var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(Dir.Data($"flood/{q}.zip"), t0, t1);
             var cofinanceInfo = GenerateCofinanceInfo(channelsTree.GetAllChannels());
 
@@ -203,9 +206,9 @@ namespace PlanSearch
 
         private static void Main()
         {
-            TestDonorsAcceptors(23, 10, 23);
-            // DrawFloodMapWithTargets();
-            // DrawFloodMapSeries(19);
+            // TestDonorsAcceptors(23, 10, 23);
+            // DrawFloodMapSeries(21);
+            DrawFloodMapSeries("21_test");
             System.Console.WriteLine("Press any key to close...");
             System.Console.ReadKey();
         }

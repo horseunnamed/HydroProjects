@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChannelsRestoration", "Chan
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChannelsEditor", "ChannelsEditor\ChannelsEditor.csproj", "{A5188C42-268E-4165-A097-03B536BD28FE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowNetwork", "FlowNetwork\FlowNetwork.csproj", "{7E93A280-F3B0-449B-BC54-ED3F7DA55E31}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{A5188C42-268E-4165-A097-03B536BD28FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5188C42-268E-4165-A097-03B536BD28FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5188C42-268E-4165-A097-03B536BD28FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E93A280-F3B0-449B-BC54-ED3F7DA55E31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E93A280-F3B0-449B-BC54-ED3F7DA55E31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E93A280-F3B0-449B-BC54-ED3F7DA55E31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E93A280-F3B0-449B-BC54-ED3F7DA55E31}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

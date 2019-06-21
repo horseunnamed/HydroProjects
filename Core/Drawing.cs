@@ -30,6 +30,16 @@ namespace Core
             }
         }
 
+        public static Color GetColorBetween(Color start, Color end, double at)
+        {
+            int a = start.A + (byte) ((end.A - start.A) * at);
+            int r = start.R + (byte) ((end.R - start.R) * at);
+            int g = start.G + (byte) ((end.G - start.G) * at);
+            int b = start.B + (byte) ((end.B - start.B) * at);
+
+            return Color.FromArgb(a, r, g, b);
+        }
+
         public static void DrawChannels(Graphics graphics, IEnumerable<Channel> channels, Brush brush, bool withOrigins = false)
         {
             foreach (var channel in channels)
