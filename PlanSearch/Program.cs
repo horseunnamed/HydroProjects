@@ -3,49 +3,45 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using CommandLine;
 using Core;
 using Core.Channels;
 using Core.Grid;
 
 namespace PlanSearch
 {
-    internal class Program
+    public class Program
     {
-        private static void WriteProjectPlanToCsv(ProjectPlan plan, string filename)
+        private static string GenerateProjectPlanCsv(ProjectPlan plan)
         {
             var csvHeader = "s,pdc,odc,effect,target_val,price";
             var csvRows = plan.Estimations
                 .Select(estimation => $"{estimation.S},{estimation.PotentialDonorsCount},{estimation.OptimalDonorsCount}" +
                                       $",{estimation.TotalEffect},{estimation.AcceptorsTargetValue},{estimation.TotalPrice}")
                 .Aggregate((i, j) => i + '\n' + j);
-            File.WriteAllText(filename, csvHeader + '\n' + csvRows);
+            return csvHeader + '\n' + csvRows;
         }
 
-        [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
-        private static void DrawProjectPlan(ProjectPlan plan, IEnumerable<Channel> allChannels, GridMap targetMap, string dir)
+        private static Bitmap DrawProjectPlanEstimation(ProjectPlan plan, ProjectPlan.Estimation estimation, IEnumerable<Channel> allChannels, GridMap targetMap)
         {
-            foreach (var estimation in plan.Estimations)
+            return Drawing.DrawBitmap(targetMap.Width, targetMap.Height, graphics =>
             {
-                var bitmap = Drawing.DrawBitmap(944, 944, graphics =>
+                Drawing.DrawGridMapValues(graphics, targetMap, DonorsAcceptors.TargetCell, new SolidBrush(Color.PowderBlue));
+                foreach (var acceptor in estimation.Acceptors)
                 {
-                    Drawing.DrawGridMapValues(graphics, targetMap, DonorsAcceptors.TargetCell, new SolidBrush(Color.PowderBlue));
-                    foreach (var acceptor in estimation.Acceptors)
-                    {
-                        Drawing.DrawPoints(graphics, plan.Zones[acceptor], new SolidBrush(Color.Aquamarine));
-                    }
-                    foreach (var donor in estimation.Donors)
-                    {
-                        Drawing.DrawPoints(graphics, plan.Zones[donor], new SolidBrush(Color.HotPink));
-                    }
-                    Drawing.DrawChannels(graphics, allChannels, new SolidBrush(Color.Black));
-                    Drawing.DrawChannels(graphics, estimation.Acceptors, new SolidBrush(Color.LimeGreen));
-                    Drawing.DrawChannels(graphics, estimation.Donors, new SolidBrush(Color.Red));
-                });
-                bitmap.Save($"{dir}/s_{estimation.S}.png");
-            }
+                    Drawing.DrawPoints(graphics, plan.Zones[acceptor], new SolidBrush(Color.Aquamarine));
+                }
+                foreach (var donor in estimation.Donors)
+                {
+                    Drawing.DrawPoints(graphics, plan.Zones[donor], new SolidBrush(Color.HotPink));
+                }
+                Drawing.DrawChannels(graphics, allChannels, new SolidBrush(Color.Black));
+                Drawing.DrawChannels(graphics, estimation.Acceptors, new SolidBrush(Color.LimeGreen));
+                Drawing.DrawChannels(graphics, estimation.Donors, new SolidBrush(Color.Red));
+            });
         }
 
-        private static void SetDamsFor(ISet<Channel> channels, GridMap relief, string outputFile)
+        private static GridMap SetDamsFor(ISet<Channel> channels, GridMap relief)
         {
             var verticalAhtubaDams = new long[] { 242, 245, 246, 247 };
             var horizontalAhtubaDams = new long[] { 243, 244, 248, 249 };
@@ -59,7 +55,7 @@ namespace PlanSearch
                     var originPoint = channel.Points[0];
                     for (var i = -5; i < 8; i++)
                     {
-                        damRelief[originPoint.X - 1, originPoint.Y + i - 1] = damHeight;
+                        damRelief[originPoint.X, originPoint.Y + i] = damHeight;
                     }
                 } 
                 else if (horizontalAhtubaDams.Contains(channel.Id))
@@ -67,25 +63,25 @@ namespace PlanSearch
                     var originPoint = channel.Points[0];
                     for (var i = -5; i < 8; i++)
                     {
-                        damRelief[originPoint.X + i - 1, originPoint.Y - 1] = damHeight;
+                        damRelief[originPoint.X + i, originPoint.Y] = damHeight;
                     }
                 }
                 else
                 {
-                    for (var i = 0; i < 6 && i < channel.Points.Count; i++)
+                    for (var i = 0; i < 15 && i < channel.Points.Count; i++)
                     {
                         var originPoint = channel.Points[i];
-                        damRelief[originPoint.X - 1, originPoint.Y - 1] = damHeight;
+                        damRelief[originPoint.X, originPoint.Y] = damHeight;
                     }
                 }
             }
 
-            GrdInteraction.WriteGridMapToGrd(outputFile, damRelief);
+            return damRelief;
         }
 
-        private static void DrawFloodMapWithTargets(FloodSeries floodSeries, GridMap ecoTargetMap, string dir)
+        private static Bitmap DrawFloodMapWithTargets(FloodSeries floodSeries, GridMap targetMap)
         {
-            var floodMap = GridMap.CreateByParamsOf(ecoTargetMap);
+            var floodMap = GridMap.CreateByParamsOf(targetMap);
             foreach (var floodDay in floodSeries.Days)
             {
                 var hMap = floodDay.HMap;
@@ -101,31 +97,30 @@ namespace PlanSearch
                 }
             }
 
-            for (var x = 0; x < ecoTargetMap.Width; x++)
+            for (var x = 0; x < targetMap.Width; x++)
             {
-                for (var y = 0; y < ecoTargetMap.Height; y++)
+                for (var y = 0; y < targetMap.Height; y++)
                 {
                     // ReSharper disable CompareOfFloatsByEqualityOperator
-                    if (ecoTargetMap[x, y] == DonorsAcceptors.TargetCell && floodMap[x, y] != 1)
+                    if (targetMap[x, y] == DonorsAcceptors.TargetCell && floodMap[x, y] != 1)
                     {
                         floodMap[x, y] = 2;
                     }
                 }
             }
 
-            var bitmap = Drawing.DrawBitmap(944, 944, graphics =>
+            return Drawing.DrawBitmap(floodMap.Width, floodMap.Height, graphics =>
             {
                 Drawing.DrawGridMapValues(graphics, floodMap, 1, new SolidBrush(Color.Aquamarine));
                 Drawing.DrawGridMapValues(graphics, floodMap, 2, new SolidBrush(Color.HotPink));
             });
-            bitmap.Save($"{dir}/floodmap.png");
         }
 
-        private static void DrawFloodMapSeries(string q)
+        /*
+        public static void DrawFloodMapSeries(string floodSeriesFile, int start, int end, string outputDir)
         {
-            var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(Dir.Data($"flood/{q}.zip"), 0, 13);
+            var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(floodSeriesFile, start, end);
 
-            var outputDir = Dir.Data($"floodmap_vis/Q={q}"); 
             Dir.RequireDirectory(outputDir);
 
             foreach (var floodDay in floodSeries.Days)
@@ -135,9 +130,10 @@ namespace PlanSearch
                 {
                     Drawing.DrawGridMapValues(graphics, hMap, (x, y, v) => v > 0, new SolidBrush(Color.Blue));
                 });
-                bitmap.Save(Dir.Data($"{outputDir}/{floodDay.T}_day.png"));
+                bitmap.Save($"{outputDir}/{floodDay.T}_day.png");
             }
         }
+        */
 
         private static CofinanceInfo GenerateCofinanceInfo(IEnumerable<Channel> channels)
         {
@@ -156,60 +152,88 @@ namespace PlanSearch
                 .Select(est => (est.S, est.Donors));
         }
 
-        private static void TestDonorsAcceptors(int q, int t0, int t1)
+        public class Options
         {
-            var relief = GrdInteraction.ReadGridMapFromGrd(Dir.Data("relief.grd"));
-            var ecoTargetMap =
-                GrdInteraction.ReadGridMapFromGrd(Dir.Data("frequencies/add_frequency_from_0,65_to_0,85.grd"));
-            var channelsTree = CgInteraction.ReadChannelsTreeFromCg(Dir.Data("channels_tree.cg"));
-            var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(Dir.Data($"flood/{q}.zip"), t0, t1);
-            var cofinanceInfo = GenerateCofinanceInfo(channelsTree.GetAllChannels());
+            [Option("relief", Required = true)]
+            public string ReliefFile { get; set; }
 
-            var baseOutputDir = Dir.Data($"test_donors/Q={q}");
-            var drawingsDir = $"{baseOutputDir}/drawings";
-            var mapsDir = $"{baseOutputDir}/maps";
+            [Option("target-map", Required = true)]
+            public string TargetMapFile { get; set; }
 
-            Dir.RequireDirectory(Dir.Data(baseOutputDir));
-            Dir.RequireDirectory(Dir.Data(drawingsDir));
-            Dir.RequireDirectory(Dir.Data(mapsDir));
+            [Option("flood-series", Required = true)]
+            public string FloodSeriesFile { get; set; }
 
-            DrawFloodMapWithTargets(floodSeries, ecoTargetMap, baseOutputDir);
+            [Option("channels-graph", Required = true)]
+            public string ChannelsGraphFile { get; set; }
 
-            var strategies = new[]
-            {
-                (DonorsAcceptors.RatingStrategy.TargetCount, "count"), 
-                (DonorsAcceptors.RatingStrategy.TargetRatio, "ratio")
-            };
+            [Option("start-day", Required = true)]
+            public int StartDay { get; set; }
 
-            foreach (var (strategy, strategyName) in strategies)
-            {
-                var strategyDrawingsDir = $"{drawingsDir}/{strategyName}";
-                var strategyMapsDir = $"{mapsDir}/{strategyName}";
+            [Option("end-day", Required = true)]
+            public int EndDay { get; set; }
 
-                Dir.RequireDirectory(Dir.Data(strategyDrawingsDir));
-                Dir.RequireDirectory(Dir.Data(strategyMapsDir));
+            [Option("max-s", Required = true)]
+            public int MaxS { get; set; }
 
-                var donorsAcceptors = new DonorsAcceptors(strategy, channelsTree, ecoTargetMap, floodSeries, 150);
-                var projectPlan = donorsAcceptors.Run(cofinanceInfo);
-
-                WriteProjectPlanToCsv(projectPlan, Dir.Data($"{baseOutputDir}/{strategyName}.csv"));
-
-                DrawProjectPlan(projectPlan, channelsTree.GetAllChannels(), ecoTargetMap, strategyDrawingsDir);
-                var uniqueDonorsSets = GetUniqueSetsOfDonors(projectPlan);
-                foreach (var donorsSet in uniqueDonorsSets)
-                {
-                    SetDamsFor(donorsSet.Item2, relief, $"{strategyMapsDir}/s={donorsSet.Item1}.grd");
-                }
-            }
-
+            [Option("output", Required = true)]
+            public string OutputDir { get; set; }
         }
 
-        private static void Main()
+        public static void Main(string[] args)
         {
-            // TestDonorsAcceptors(23, 10, 23);
-            // DrawFloodMapSeries(21);
-            DrawFloodMapSeries("21_test");
-            System.Console.WriteLine("Press any key to close...");
+            Parser.Default.ParseArguments<Options>(args).WithParsed(o =>
+            {
+                var relief = GrdInteraction.ReadGridMapFromGrd(o.ReliefFile);
+                var targetMap = GrdInteraction.ReadGridMapFromGrd(o.TargetMapFile);
+                var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(o.FloodSeriesFile, o.StartDay, o.EndDay);
+                var channels = CgInteraction.ReadChannelsTreeFromCg(o.ChannelsGraphFile);
+
+                var drawingsDir = $"{o.OutputDir}/drawings";
+                var mapsDir = $"{o.OutputDir}/maps";
+
+                Dir.RequireDirectory(o.OutputDir);
+                Dir.RequireDirectory(drawingsDir);
+                Dir.RequireDirectory(mapsDir);
+
+                var floodMap = DrawFloodMapWithTargets(floodSeries, targetMap);
+                floodMap.Save($"{o.OutputDir}/floodmap.png");
+
+                var strategies = new[]
+                {
+                    (DonorsAcceptors.RatingStrategy.TargetCount, "count"), 
+                    (DonorsAcceptors.RatingStrategy.TargetRatio, "ratio")
+                };
+
+                foreach (var (strategy, strategyName) in strategies)
+                {
+                    var strategyDrawingsDir = $"{drawingsDir}/{strategyName}";
+                    var strategyMapsDir = $"{mapsDir}/{strategyName}";
+
+                    Dir.RequireDirectory(strategyDrawingsDir);
+                    Dir.RequireDirectory(strategyMapsDir);
+
+                    var donorsAcceptors = new DonorsAcceptors(strategy, channels, targetMap, floodSeries, o.MaxS);
+                    var projectPlan = donorsAcceptors.Run(GenerateCofinanceInfo(channels.GetAllChannels()));
+
+                    var projectCsv = GenerateProjectPlanCsv(projectPlan);
+                    File.WriteAllText($"{o.OutputDir}/{strategyName}.csv", projectCsv);
+
+                    foreach (var estimation in projectPlan.Estimations)
+                    {
+                        var bitmap = DrawProjectPlanEstimation(projectPlan, estimation, channels.GetAllChannels(), targetMap);
+                        bitmap.Save($"{strategyDrawingsDir}/s={estimation.S}.png");
+                    }
+
+                    var uniqueDonorsSets = GetUniqueSetsOfDonors(projectPlan);
+                    foreach (var donorsSet in uniqueDonorsSets)
+                    {
+                        var reliefWithDams = SetDamsFor(donorsSet.Item2, relief);
+                        GrdInteraction.WriteGridMapToGrd($"{strategyMapsDir}/s={donorsSet.Item1}.grd", reliefWithDams);
+                    }
+                }
+            });
+
+            System.Console.WriteLine("Press any key to continue...");
             System.Console.ReadKey();
         }
     }
