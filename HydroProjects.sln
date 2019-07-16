@@ -15,7 +15,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChannelsEditor", "ChannelsE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowNetwork", "FlowNetwork\FlowNetwork.csproj", "{7E93A280-F3B0-449B-BC54-ED3F7DA55E31}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChannelsDirectionResearch", "ChannelsDirectionResearch\ChannelsDirectionResearch.csproj", "{FF9910EF-758C-430C-9597-6A05971FFE52}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CGDirectionsVisualizer", "ChannelsDirectionResearch\CGDirectionsVisualizer.csproj", "{FF9910EF-758C-430C-9597-6A05971FFE52}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CGDirectionsNormalizer", "CGDirectionsNormalizer\CGDirectionsNormalizer.csproj", "{8A17D4AA-C88B-4B7E-991B-97A31D100278}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{FF9910EF-758C-430C-9597-6A05971FFE52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF9910EF-758C-430C-9597-6A05971FFE52}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF9910EF-758C-430C-9597-6A05971FFE52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A17D4AA-C88B-4B7E-991B-97A31D100278}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A17D4AA-C88B-4B7E-991B-97A31D100278}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A17D4AA-C88B-4B7E-991B-97A31D100278}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A17D4AA-C88B-4B7E-991B-97A31D100278}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

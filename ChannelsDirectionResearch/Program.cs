@@ -55,10 +55,19 @@ namespace ChannelsDirectionResearch
                 }
                 else
                 {
-                    var child = channel.Children[0];
-                    var p2 = child.Points[0];
-                    double px = p2.X - p1.X;
-                    double py = p2.Y - p1.Y;
+                    double p2x = 0;
+                    double p2y = 0;
+                    foreach (var child in channel.Children)
+                    {
+                        p2x += child.Points[0].X;
+                        p2y += child.Points[0].Y;
+                    }
+
+                    p2x /= channel.Children.Count;
+                    p2y /= channel.Children.Count;
+
+                    double px = p2x - p1.X;
+                    double py = p2y - p1.Y;
                     double pLen = Length(px, py);
 
                     if (Math.Abs(pLen) < 1e-6)
