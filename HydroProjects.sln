@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.421
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{573FE16A-BA4E-44F2-A86D-E5273580251F}"
 EndProject
@@ -18,6 +18,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CGDirectionsVisualizer", "ChannelsDirectionResearch\CGDirectionsVisualizer.csproj", "{FF9910EF-758C-430C-9597-6A05971FFE52}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CGDirectionsNormalizer", "CGDirectionsNormalizer\CGDirectionsNormalizer.csproj", "{8A17D4AA-C88B-4B7E-991B-97A31D100278}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EfficiencyDiffChecker", "EfficiencyDiffChecker\EfficiencyDiffChecker.csproj", "{D671905C-03D8-434F-916D-8DBE4A4D71B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FloodmapsVisualizer", "FloodmapsVisualizer\FloodmapsVisualizer.csproj", "{F33AADA8-21D1-4327-B2F5-405D6E378BFC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +61,14 @@ Global
 		{8A17D4AA-C88B-4B7E-991B-97A31D100278}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A17D4AA-C88B-4B7E-991B-97A31D100278}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A17D4AA-C88B-4B7E-991B-97A31D100278}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D671905C-03D8-434F-916D-8DBE4A4D71B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D671905C-03D8-434F-916D-8DBE4A4D71B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D671905C-03D8-434F-916D-8DBE4A4D71B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D671905C-03D8-434F-916D-8DBE4A4D71B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F33AADA8-21D1-4327-B2F5-405D6E378BFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F33AADA8-21D1-4327-B2F5-405D6E378BFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F33AADA8-21D1-4327-B2F5-405D6E378BFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F33AADA8-21D1-4327-B2F5-405D6E378BFC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

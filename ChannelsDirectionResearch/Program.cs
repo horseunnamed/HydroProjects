@@ -120,7 +120,7 @@ namespace ChannelsDirectionResearch
             Parser.Default.ParseArguments<Options>(args).WithParsed(o =>
             {
                 var channels = CgInteraction.ReadChannelsTreeFromCg(o.ChannelsGraphFile);
-                var floodSeries = GrdInteraction.ReadFloodSeriesFromZip(o.FloodSeriesFile, o.StartDay, o.EndDay);
+                var floodSeries = FloodseriesZip.Read(o.FloodSeriesFile, o.StartDay, o.EndDay);
                 Dir.RequireDirectory(o.OutputDir);
                 foreach (var day in floodSeries.Days)
                 {

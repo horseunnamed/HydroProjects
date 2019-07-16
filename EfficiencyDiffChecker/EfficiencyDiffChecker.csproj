@@ -4,15 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FF9910EF-758C-430C-9597-6A05971FFE52}</ProjectGuid>
+    <ProjectGuid>{D671905C-03D8-434F-916D-8DBE4A4D71B0}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>ChannelsDirectionResearch</RootNamespace>
-    <AssemblyName>ChannelsDirectionResearch</AssemblyName>
+    <RootNamespace>EfficiencyDiffChecker</RootNamespace>
+    <AssemblyName>EfficiencyDiffChecker</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -39,7 +38,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />

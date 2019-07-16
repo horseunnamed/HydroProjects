@@ -1,17 +1,15 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
+﻿using System.IO;
 
 namespace Core.Grid
 {
-    public class GrdInteraction
+    public class Grd
     {
-        public static GridMap ReadGridMapFromGrd(string filename)
+        public static GridMap Read(string filename)
         {
-            return ReadGridMapFromStream(new FileStream(filename, FileMode.Open));
+            return Read(new FileStream(filename, FileMode.Open));
         }
 
-        public static void WriteGridMapToGrd(string filename, GridMap map)
+        public static void Write(string filename, GridMap map)
         {
             using (var fs = new FileStream(filename, FileMode.Create))
             using (var binWriter = new BinaryWriter(fs))
@@ -36,37 +34,7 @@ namespace Core.Grid
             }
         }
 
-        public static FloodSeries ReadFloodSeriesFromZip(string filename, int startDay, int endDay)
-        {
-            var floodDays = new List<FloodDay>();
-            using (var zipToOpen = new FileStream(filename, FileMode.Open))
-            using (var archive = new ZipArchive(zipToOpen))
-            {
-                for (var day = startDay; day <= endDay; day++)
-                {
-                    var hEntry = archive.GetEntry(GetEntryNameForMap("H", day));
-                    var hMap = ReadGridMapFromStream(hEntry?.Open());
-
-                    var vxEntry = archive.GetEntry(GetEntryNameForMap("vx", day));
-                    var vxMap = ReadGridMapFromStream(vxEntry?.Open());
-
-                    var vyEntry = archive.GetEntry(GetEntryNameForMap("vy", day));
-                    var vyMap = ReadGridMapFromStream(vyEntry?.Open());
-
-                    floodDays.Add(new FloodDay(day, hMap, vxMap, vyMap));
-                }
-            }
-
-            return new FloodSeries(floodDays);
-        }
-
-        private static string GetEntryNameForMap(string prefix, int day)
-        {
-            var dayStr = (day < 10 ? " " : "") + day;
-            return $"{prefix}_   {dayStr}.grd";
-        }
-
-        private static GridMap ReadGridMapFromStream(Stream stream)
+        public static GridMap Read(Stream stream)
         {
             GridMap gridMap;
             using (var binReader = new BinaryReader(stream))
