@@ -78,10 +78,10 @@ namespace PlanSearch
                 Dir.RequireDirectory(strategyDrawingsDir);
                 Dir.RequireDirectory(strategyMapsDir);
 
-                var donorsAcceptors = new DonorsAcceptors(strategy, channels, targetMap, 
-                    options.TargetValue, floodSeries, options.MaxS);
+                var donorsAcceptors = DonorsAcceptors.Create(strategy, channels, targetMap, 
+                    options.TargetValue, floodSeries);
 
-                var projectPlan = donorsAcceptors.Run(GenerateCofinanceInfo(channels.GetAllChannels()));
+                var projectPlan = donorsAcceptors.Run(GenerateCofinanceInfo(channels.GetAllChannels()), options.MaxS);
 
                 var projectCsv = GenerateProjectPlanCsv(projectPlan);
                 File.WriteAllText($"{options.OutputDir}/{strategyName}.csv", projectCsv);

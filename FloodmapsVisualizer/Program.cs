@@ -47,28 +47,12 @@ namespace FloodmapsVisualizer
             bitmap.Save($"{outputDir}/floodmap.png");
         }
 
-        static GridMap CombineFloodMapSeries(FloodSeries floodSeries)
-        {
-            var result = floodSeries.Days[0].HMap.Copy();
-            foreach (var floodDay in floodSeries.Days.Skip(1))
-            {
-                for (var x = 0; x < result.Width; x++)
-                {
-                    for (var y = 0; y < result.Height; y++)
-                    {
-                        result[x, y] = Math.Max(result[x, y], floodDay.HMap[x, y]);
-                    }
-                }
-            }
-            return result;
-        }
-
         static void Run(Options options)
         {
             var output = $"{options.OutputDir}/{Path.GetFileNameWithoutExtension(options.FloodSeriesPath)}";
             Dir.RequireDirectory(output);
             var floodseries = FloodseriesZip.Read(options.FloodSeriesPath, options.StartDay, options.EndDay);
-            var floodmap = CombineFloodMapSeries(floodseries);
+            var floodmap = floodseries.CombineToFloodmap();
             DrawFloodSeries(floodseries, output);
             DrawFloodMap(floodmap, output);
             Grd.Write($"{output}/floodmap.grd", floodmap);

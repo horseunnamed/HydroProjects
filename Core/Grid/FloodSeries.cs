@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Core.Grid
 {
@@ -10,6 +11,22 @@ namespace Core.Grid
         public FloodSeries(IList<FloodDay> days)
         {
             Days = days ?? throw new ArgumentNullException(nameof(days));
+        }
+
+        public GridMap CombineToFloodmap()
+        {
+            var result = Days[0].HMap.Copy();
+            foreach (var floodDay in Days.Skip(1))
+            {
+                for (var x = 0; x < result.Width; x++)
+                {
+                    for (var y = 0; y < result.Height; y++)
+                    {
+                        result[x, y] = Math.Max(result[x, y], floodDay.HMap[x, y]);
+                    }
+                }
+            }
+            return result;
         }
     }
 
