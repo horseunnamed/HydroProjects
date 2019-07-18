@@ -14,7 +14,6 @@ namespace PlanSearch
         }
 
         public const int ZoneR = 10;
-        public const double TargetCell = 3;
 
         private readonly int _maxS;
         private readonly RatingStrategy _strategy;
@@ -25,14 +24,15 @@ namespace PlanSearch
         private readonly IList<(double, Channel)> _targetRating;
         private readonly IDictionary<Channel, double> _vEstimation;
 
-        public DonorsAcceptors(RatingStrategy strategy, ChannelsTree channelsTree, GridMap ecoTargetMap, FloodSeries floodSeries, int maxS=100)
+        public DonorsAcceptors(RatingStrategy strategy, ChannelsTree channelsTree, GridMap ecoTargetMap, 
+            double ecoTargetValue, FloodSeries floodSeries, int maxS=100)
         {
             _strategy = strategy;
             _channelsTree = channelsTree ?? throw new ArgumentNullException(nameof(channelsTree));
             _maxS = maxS;
 
             _channelZones = GetChannelZones(ecoTargetMap.Width, ecoTargetMap.Height);
-            _targetCells = GetTargetCells(ecoTargetMap);
+            _targetCells = GetTargetCells(ecoTargetMap, ecoTargetValue);
             _ratingValues = GetRatingValues();
             _targetRating = ToRating(_ratingValues);
             _vEstimation = GetVEstimation(floodSeries);
@@ -121,7 +121,7 @@ namespace PlanSearch
             return result;
         }
 
-        private IDictionary<Channel, IEnumerable<(int, int)>> GetTargetCells(GridMap ecoTargetMap)
+        private IDictionary<Channel, IEnumerable<(int, int)>> GetTargetCells(GridMap ecoTargetMap, double ecoTargetValue)
         {
             var result = new Dictionary<Channel, IEnumerable<(int, int)>>();
             foreach (var channelZone in _channelZones)
@@ -130,7 +130,7 @@ namespace PlanSearch
                 foreach (var (x, y) in channelZone.Value)
                 {
                     // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    if (ecoTargetMap[x, y] == TargetCell)
+                    if (ecoTargetMap[x, y] == ecoTargetValue)
                     {
                         zoneTargetCells.Add((x, y));
                     }

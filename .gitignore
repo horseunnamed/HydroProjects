@@ -262,5 +262,5 @@ __pycache__/
 
 # Ignore flood maps
 data/flood
-data/test_donors
 data/test_channels_direction
+data/heuristic_plan

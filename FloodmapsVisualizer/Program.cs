@@ -25,7 +25,7 @@ namespace FloodmapsVisualizer
             public string OutputDir { get; set; }
         }
 
-        static void DrawFloodMapSeries(FloodSeries floodSeries, string outputDir)
+        static void DrawFloodSeries(FloodSeries floodSeries, string outputDir)
         {
             foreach (var floodDay in floodSeries.Days)
             {
@@ -69,7 +69,7 @@ namespace FloodmapsVisualizer
             Dir.RequireDirectory(output);
             var floodseries = FloodseriesZip.Read(options.FloodSeriesPath, options.StartDay, options.EndDay);
             var floodmap = CombineFloodMapSeries(floodseries);
-            DrawFloodMapSeries(floodseries, output);
+            DrawFloodSeries(floodseries, output);
             DrawFloodMap(floodmap, output);
             Grd.Write($"{output}/floodmap.grd", floodmap);
         }
@@ -77,8 +77,8 @@ namespace FloodmapsVisualizer
         static void Main(string[] args)
         {
             Parser.Default.ParseArguments<Options>(args).WithParsed(Run);
-            System.Console.WriteLine("Press any key to continue...");
-            System.Console.ReadKey();
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
         }
     }
 }
