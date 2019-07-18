@@ -263,5 +263,4 @@ __pycache__/
 # Ignore flood maps
 data/flood
 data/test_donors
-data/floodmap_vis
 data/test_channels_direction

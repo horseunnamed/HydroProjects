@@ -88,6 +88,16 @@ namespace Core
             });
         }
 
+        public delegate Color CellColorSupplier(int x, int y, double value);
+
+        public static void DrawGridMapValues(Graphics graphics, GridMap gridMap, CellColorSupplier colorSupplier)
+        {
+            gridMap.Values.Visit((v, x, y) =>
+            {
+                graphics.FillRectangle(new SolidBrush(colorSupplier(x, y, v)), x, y, 1, 1);
+            });
+        }
+
         public static void DrawChannelsOrigins(Graphics graphics, IEnumerable<Channel> channels)
         {
             foreach (var channel in channels)
