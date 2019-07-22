@@ -3,7 +3,6 @@ using Core;
 using Core.Grid;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 
 namespace EfficiencyDiffChecker
 {
@@ -111,6 +110,55 @@ namespace EfficiencyDiffChecker
             });
         }
 
+        private static string PrepareReport(GridMap diffMap)
+        {
+            var result = "";
+            var total = 0;
+            var totalTarget = 0;
+            var baseFlooded = 0;
+            var baseFloodedTarget = 0;
+            var newFlooded = 0;
+            var newFloodedTarget = 0;
+
+            for (var x = 0; x < diffMap.Width; x++)
+            {
+                for (var y = 0; y < diffMap.Height; y++)
+                {
+                    var cell = (int)diffMap[x, y];
+                    total++;
+                    if ((cell & Diff.FLOODED1) != 0)
+                    {
+                        baseFlooded++;
+                    }
+                    if ((cell & Diff.FLOODED2) != 0)
+                    {
+                        newFlooded++;
+                    }
+                    if ((cell & Diff.TARGET) != 0)
+                    {
+                        totalTarget++;
+                        if ((cell & Diff.FLOODED1) != 0)
+                        {
+                            baseFloodedTarget++;
+                        }
+                        if ((cell & Diff.FLOODED2) != 0)
+                        {
+                            newFloodedTarget++;
+                        }
+                    }
+                }
+            }
+
+            var totalEffect = (newFlooded - baseFlooded) / (float)baseFlooded * 100;
+            var totalEffectTarget = (newFloodedTarget - baseFloodedTarget) / (float)baseFloodedTarget * 100;
+
+            result += $"Total: {totalTarget} ({total})\n";
+            result += $"Base flooded: {baseFloodedTarget} ({baseFlooded})\n";
+            result += $"New flooded: {newFloodedTarget} ({newFlooded})\n";
+            result += $"Relative effect: {totalEffectTarget:0.#}% ({totalEffect:0.#}%)";
+            return result;
+        }
+
         static void Run(Options options)
         {
             var targetmap = Grd.Read(options.TargetmapPath);
@@ -119,7 +167,9 @@ namespace EfficiencyDiffChecker
 
             var diff = GetDiffBetween(floodmap1, floodmap2, targetmap, options.TargetValue);
             var bitmap = DrawDiffMap(diff);
+            var report = PrepareReport(diff);
             bitmap.Save($"{options.OutputDir}/diff.png");
+            File.WriteAllText($"{options.OutputDir}/report.txt", report);
         }
 
         static void Main(string[] args)
