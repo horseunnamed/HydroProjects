@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using Core.Channels;
 using Core.Grid;
 
@@ -8,6 +9,14 @@ namespace Core
 {
     public class Drawing
     {
+        private static Matrix GetYFlipTransform(Graphics graphics)
+        {
+            var result = new Matrix();
+            result.Scale(1, -1);
+            result.Translate(0, -graphics.VisibleClipBounds.Height);
+            return result;
+        }
+
         private static Color RGB(int r, int g, int b)
         {
             return Color.FromArgb(r, g, b);
@@ -42,6 +51,7 @@ namespace Core
 
         public static void DrawChannels(Graphics graphics, IEnumerable<Channel> channels, Brush brush, bool withOrigins = false)
         {
+            graphics.Transform = GetYFlipTransform(graphics);
             foreach (var channel in channels)
             {
                 foreach (var p in channel.Points)
@@ -58,19 +68,21 @@ namespace Core
                     }
                 }
             }
+            graphics.ResetTransform();
         }
 
-        public static void DrawPoints(Graphics graphics, IEnumerable<(int, int)> points, Brush brush)
+        public static void DrawMapPoints(Graphics graphics, IEnumerable<(int, int)> points, Brush brush)
         {
+            graphics.Transform = GetYFlipTransform(graphics);
             foreach (var (x, y) in points)
             {
                 graphics.FillRectangle(brush, x, y, 1, 1);
             }
+            graphics.ResetTransform();
         }
 
         public static void DrawGridMapValues(Graphics graphics, GridMap gridMap, double value, Brush brush)
         {
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
             DrawGridMapValues(graphics, gridMap, (x, y, v) => v == value, brush);
         }
 
@@ -79,6 +91,7 @@ namespace Core
 
         public static void DrawGridMapValues(Graphics graphics, GridMap gridMap, GridMapCellsSelector selector, Brush brush)
         {
+            graphics.Transform = GetYFlipTransform(graphics);
             gridMap.Values.Visit((v, x, y) =>
             {
                 if (selector(x, y, v))
@@ -86,16 +99,19 @@ namespace Core
                     graphics.FillRectangle(brush, x, y, 1, 1);
                 }
             });
+            graphics.ResetTransform();
         }
 
         public delegate Color CellColorSupplier(int x, int y, double value);
 
         public static void DrawGridMapValues(Graphics graphics, GridMap gridMap, CellColorSupplier colorSupplier)
-        {
+        { 
+            graphics.Transform = GetYFlipTransform(graphics);
             gridMap.Values.Visit((v, x, y) =>
             {
                 graphics.FillRectangle(new SolidBrush(colorSupplier(x, y, v)), x, y, 1, 1);
             });
+            graphics.ResetTransform();
         }
 
         public static void DrawChannelsOrigins(Graphics graphics, IEnumerable<Channel> channels)
@@ -122,7 +138,7 @@ namespace Core
                 g.Dispose();
             }
 
-            bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            // bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
             return bitmap;
         }
 

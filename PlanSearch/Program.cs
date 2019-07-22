@@ -58,8 +58,8 @@ namespace PlanSearch
             var drawingsDir = $"{options.OutputDir}/vis";
             var mapsDir = $"{options.OutputDir}/maps";
 
-            Dir.RequireDirectory(drawingsDir);
-            Dir.RequireDirectory(mapsDir);
+            Dir.RequireClearDirectory(drawingsDir);
+            Dir.RequireClearDirectory(mapsDir);
 
             var floodMap = DrawFloodMapWithTargets(floodSeries, targetMap, options.TargetValue);
             floodMap.Save($"{options.OutputDir}/floodmap.png");
@@ -75,8 +75,8 @@ namespace PlanSearch
                 var strategyDrawingsDir = $"{drawingsDir}/{strategyName}";
                 var strategyMapsDir = $"{mapsDir}/{strategyName}";
 
-                Dir.RequireDirectory(strategyDrawingsDir);
-                Dir.RequireDirectory(strategyMapsDir);
+                Dir.RequireClearDirectory(strategyDrawingsDir);
+                Dir.RequireClearDirectory(strategyMapsDir);
 
                 var donorsAcceptors = DonorsAcceptors.Create(strategy, channels, targetMap, 
                     options.TargetValue, floodSeries);
@@ -120,11 +120,11 @@ namespace PlanSearch
                 Drawing.DrawGridMapValues(graphics, targetMap, targetValue, new SolidBrush(Color.PowderBlue));
                 foreach (var acceptor in estimation.Acceptors)
                 {
-                    Drawing.DrawPoints(graphics, plan.Zones[acceptor], new SolidBrush(Color.Aquamarine));
+                    Drawing.DrawMapPoints(graphics, plan.Zones[acceptor], new SolidBrush(Color.Aquamarine));
                 }
                 foreach (var donor in estimation.Donors)
                 {
-                    Drawing.DrawPoints(graphics, plan.Zones[donor], new SolidBrush(Color.HotPink));
+                    Drawing.DrawMapPoints(graphics, plan.Zones[donor], new SolidBrush(Color.HotPink));
                 }
                 Drawing.DrawChannels(graphics, allChannels, new SolidBrush(Color.Black));
                 Drawing.DrawChannels(graphics, estimation.Acceptors, new SolidBrush(Color.LimeGreen));

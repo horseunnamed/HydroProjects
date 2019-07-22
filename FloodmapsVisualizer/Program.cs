@@ -38,24 +38,25 @@ namespace FloodmapsVisualizer
             }
         }
 
-        static void DrawFloodMap(GridMap floodmap, string outputDir)
+        static void DrawFloodMap(GridMap floodmap, string outputFile)
         {
             var bitmap = Drawing.DrawBitmap(floodmap.Width, floodmap.Height, graphics =>
             {
                 Drawing.DrawGridMapValues(graphics, floodmap, (x, y, v) => v > 0, new SolidBrush(Color.Blue));
             });
-            bitmap.Save($"{outputDir}/floodmap.png");
+            bitmap.Save(outputFile);
         }
 
         static void Run(Options options)
         {
-            var output = $"{options.OutputDir}/{Path.GetFileNameWithoutExtension(options.FloodSeriesPath)}";
-            Dir.RequireDirectory(output);
+            Dir.RequireDirectory(options.OutputDir);
+            var floodVisOutput = $"{options.OutputDir}/flood_vis";
+            Dir.RequireClearDirectory(floodVisOutput);
             var floodseries = FloodseriesZip.Read(options.FloodSeriesPath, options.StartDay, options.EndDay);
             var floodmap = floodseries.CombineToFloodmap();
-            DrawFloodSeries(floodseries, output);
-            DrawFloodMap(floodmap, output);
-            Grd.Write($"{output}/floodmap.grd", floodmap);
+            DrawFloodSeries(floodseries, floodVisOutput);
+            DrawFloodMap(floodmap, $"{options.OutputDir}/floodmap.png");
+            Grd.Write($"{options.OutputDir}/floodmap.grd", floodmap);
         }
 
         static void Main(string[] args)

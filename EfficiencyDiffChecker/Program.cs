@@ -3,6 +3,7 @@ using Core;
 using Core.Grid;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 
 namespace EfficiencyDiffChecker
 {
@@ -52,44 +53,61 @@ namespace EfficiencyDiffChecker
 
         private static Bitmap DrawDiffMap(GridMap diffMap)
         {
+            var meanings = new int[]
+            {
+                0,
+                Diff.FLOODED1,
+                Diff.FLOODED2,
+                Diff.FLOODED1 | Diff.FLOODED2,
+                Diff.TARGET,
+                Diff.TARGET | Diff.FLOODED1,
+                Diff.TARGET | Diff.FLOODED2,
+                Diff.TARGET | Diff.FLOODED1 | Diff.FLOODED2
+            };
+
+            var colors = new Color[]
+            {
+                Color.White,
+                Color.LightBlue,
+                Color.Blue,
+                Color.Blue,
+                Color.LightPink,
+                Color.Red,
+                Color.Green,
+                Color.LightGreen
+            };
+
             return Drawing.DrawBitmap(diffMap.Width, diffMap.Height, g =>
             {
-                Drawing.DrawGridMapValues(g, diffMap, (x, y, v) => 
+                Drawing.DrawGridMapValues(g, diffMap, (x, y, v) =>
                 {
                     var cell = (int)v;
-                    if (cell == 0)
+                    for (var i = 0; i < meanings.Length; i++)
                     {
-                        return Color.White;
+                        if (meanings[i] == cell)
+                        {
+                            return colors[i];
+                        }
                     }
-                    else if (cell == Diff.FLOODED1)
-                    {
-                        return Color.LightBlue;
-                    }
-                    else if (cell == Diff.FLOODED2)
-                    {
-                        return Color.Blue;
-                    }
-                    else if (cell == (Diff.FLOODED1 | Diff.FLOODED2))
-                    {
-                        return Color.Blue;
-                    }
-                    else if (cell == Diff.TARGET)
-                    {
-                        return Color.LightPink;
-                    }
-                    else if (cell == (Diff.TARGET | Diff.FLOODED1))
-                    {
-                        return Color.Red;
-                    }
-                    else if (cell == (Diff.TARGET | Diff.FLOODED2))
-                    {
-                        return Color.Green;
-                    }
-                    else
-                    {
-                        return Color.LightGreen;
-                    }
+                    return Color.White;
                 });
+
+                var ly = 50;
+                var lx = diffMap.Width - 200;
+                for (var i = 0; i < meanings.Length; i++)
+                {
+                    var meaning = meanings[i];
+                    var color = colors[i];
+                    var str = "";
+                    str += ((meaning & Diff.TARGET) == 0) ? "-T; " : "+T; ";
+                    str += ((meaning & Diff.FLOODED1) == 0) ? "-F1; " : "+F1; ";
+                    str += ((meaning & Diff.FLOODED2) == 0) ? "-F2; " : "+F2; ";
+                    if (color != Color.White)
+                    {
+                        g.DrawString(str, new Font("Arial", 16, FontStyle.Bold), new SolidBrush(color), lx, ly);
+                        ly += 30;
+                    }
+                }
             });
         }
 
@@ -101,7 +119,7 @@ namespace EfficiencyDiffChecker
 
             var diff = GetDiffBetween(floodmap1, floodmap2, targetmap, options.TargetValue);
             var bitmap = DrawDiffMap(diff);
-            bitmap.Save($"{options.OutputDir}/{Path.GetFileNameWithoutExtension(options.Floodmap2Path)}.png");
+            bitmap.Save($"{options.OutputDir}/diff.png");
         }
 
         static void Main(string[] args)

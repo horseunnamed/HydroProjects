@@ -1,0 +1,4 @@
+Base Q: 21
+Algorithm: Heuristic
+S: 144
+Strategy: Ratio

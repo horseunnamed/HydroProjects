@@ -121,7 +121,7 @@ namespace ChannelsDirectionResearch
             {
                 var channels = CgInteraction.ReadChannelsTreeFromCg(o.ChannelsGraphFile);
                 var floodSeries = FloodseriesZip.Read(o.FloodSeriesFile, o.StartDay, o.EndDay);
-                Dir.RequireDirectory(o.OutputDir);
+                Dir.RequireClearDirectory(o.OutputDir);
                 foreach (var day in floodSeries.Days)
                 {
                     var bitmap = DrawDirectionsBitmap(channels, day.VxMap, day.VyMap);

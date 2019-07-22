@@ -4,7 +4,16 @@ namespace Core
 {
     public class Dir
     {
+
         public static void RequireDirectory(string path)
+        {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+        }
+
+        public static void RequireClearDirectory(string path)
         {
             if (Directory.Exists(path))
             {
