@@ -17,7 +17,10 @@ namespace EfficiencyDiffChecker
             public string Floodmap2Path { get; set; }
 
             [Option("targetmap", Required = true)]
-            public string TargetmapPath { get; set; }
+            public string TargetMapPath { get; set; }
+
+            [Option("targetmask", Required = true)]
+            public string TargetMaskPath { get; set; }
 
             [Option("targetvalue", Required = true)]
             public double TargetValue { get; set; }
@@ -28,12 +31,18 @@ namespace EfficiencyDiffChecker
 
         private struct Diff
         {
-            public const int FLOODED1 = 0b001;
-            public const int FLOODED2 = 0b010;
+            public const int FLOODED1 = 0b1;
+            public const int FLOODED2 = 0b10;
             public const int TARGET = 0b100;
+            public const int MASK = 0b1000;
         }
 
-        private static GridMap GetDiffBetween(GridMap floodmap1, GridMap floodmap2, GridMap targetMap, double targetValue)
+        private static GridMap GetDiffBetween(
+            GridMap floodmap1,
+            GridMap floodmap2,
+            GridMap targetMap,
+            GridMap targetMask,
+            double targetValue)
         {
             var result = floodmap1.Copy();
             for (var x = 0; x < floodmap1.Width; x++)
@@ -43,8 +52,9 @@ namespace EfficiencyDiffChecker
                     var target = targetMap[x, y] == targetValue ? Diff.TARGET : 0;
                     var flooded1 = floodmap1[x, y] > 0 ? Diff.FLOODED1 : 0;
                     var flooded2 = floodmap2[x, y] > 0 ? Diff.FLOODED2 : 0;
+                    var mask = targetMask[x, y] != 0 ? Diff.MASK : 0;
 
-                    result[x, y] = target | flooded1 | flooded2;
+                    result[x, y] = target | flooded1 | flooded2 | mask;
                 }
             }
             return result;
@@ -54,14 +64,14 @@ namespace EfficiencyDiffChecker
         {
             var meanings = new int[]
             {
-                0,
-                Diff.FLOODED1,
-                Diff.FLOODED2,
-                Diff.FLOODED1 | Diff.FLOODED2,
-                Diff.TARGET,
-                Diff.TARGET | Diff.FLOODED1,
-                Diff.TARGET | Diff.FLOODED2,
-                Diff.TARGET | Diff.FLOODED1 | Diff.FLOODED2
+                Diff.MASK,
+                Diff.FLOODED1 | Diff.MASK,
+                Diff.FLOODED2 | Diff.MASK,
+                Diff.FLOODED1 | Diff.FLOODED2 | Diff.MASK,
+                Diff.TARGET | Diff.MASK,
+                Diff.TARGET | Diff.FLOODED1 | Diff.MASK,
+                Diff.TARGET | Diff.FLOODED2 | Diff.MASK,
+                Diff.TARGET | Diff.FLOODED1 | Diff.FLOODED2 | Diff.MASK
             };
 
             var colors = new Color[]
@@ -125,25 +135,28 @@ namespace EfficiencyDiffChecker
                 for (var y = 0; y < diffMap.Height; y++)
                 {
                     var cell = (int)diffMap[x, y];
-                    total++;
-                    if ((cell & Diff.FLOODED1) != 0)
+                    if ((cell & Diff.MASK) != 0)
                     {
-                        baseFlooded++;
-                    }
-                    if ((cell & Diff.FLOODED2) != 0)
-                    {
-                        newFlooded++;
-                    }
-                    if ((cell & Diff.TARGET) != 0)
-                    {
-                        totalTarget++;
+                        total++;
                         if ((cell & Diff.FLOODED1) != 0)
                         {
-                            baseFloodedTarget++;
+                            baseFlooded++;
                         }
                         if ((cell & Diff.FLOODED2) != 0)
                         {
-                            newFloodedTarget++;
+                            newFlooded++;
+                        }
+                        if ((cell & Diff.TARGET) != 0)
+                        {
+                            totalTarget++;
+                            if ((cell & Diff.FLOODED1) != 0)
+                            {
+                                baseFloodedTarget++;
+                            }
+                            if ((cell & Diff.FLOODED2) != 0)
+                            {
+                                newFloodedTarget++;
+                            }
                         }
                     }
                 }
@@ -161,11 +174,12 @@ namespace EfficiencyDiffChecker
 
         static void Run(Options options)
         {
-            var targetmap = Grd.Read(options.TargetmapPath);
+            var targetMap = Grd.Read(options.TargetMapPath);
+            var targetMask = Grd.Read(options.TargetMaskPath);
             var floodmap1 = Grd.Read(options.Floodmap1Path);
             var floodmap2 = Grd.Read(options.Floodmap2Path);
 
-            var diff = GetDiffBetween(floodmap1, floodmap2, targetmap, options.TargetValue);
+            var diff = GetDiffBetween(floodmap1, floodmap2, targetMap, targetMask, options.TargetValue);
             var bitmap = DrawDiffMap(diff);
             var report = PrepareReport(diff);
             bitmap.Save($"{options.OutputDir}/diff.png");
