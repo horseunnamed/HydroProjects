@@ -70,7 +70,7 @@ namespace Core.Channels
                 ParentOf[channel] = parent;
             }
 
-            foreach (var child in channel.Children)
+            foreach (var child in channel.Connecions)
             {
                 BuildParentOfRec(child, channel);
             }
@@ -79,7 +79,7 @@ namespace Core.Channels
         private void VisitChannelsFromTopRec(Channel channel, ChannelsVisitor visitor)
         {
             visitor(channel);
-            foreach (var child in channel.Children)
+            foreach (var child in channel.Connecions)
             {
                 VisitChannelsFromTopRec(child, visitor);
             }
@@ -87,7 +87,7 @@ namespace Core.Channels
 
         private void VisitChannelsFromBottomRec(Channel channel, ChannelsVisitor visitor)
         {
-            foreach (var child in channel.Children)
+            foreach (var child in channel.Connecions)
             {
                 VisitChannelsFromBottomRec(child, visitor);
             }
@@ -98,7 +98,7 @@ namespace Core.Channels
         private void VisitChannelsDepthFromTopRec(Channel channel, int depth, ChannelsDepthVisitor visitor)
         {
             visitor(channel, depth);
-            foreach (var child in channel.Children)
+            foreach (var child in channel.Connecions)
             {
                 VisitChannelsDepthFromTopRec(child, depth + 1, visitor);
             }

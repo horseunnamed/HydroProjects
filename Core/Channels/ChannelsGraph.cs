@@ -5,7 +5,7 @@ namespace Core.Channels
 {
     public delegate void ChannelsVisitor(Channel channel);
 
-    class ChannelsGraph
+    public class ChannelsGraph
     {
         private readonly Channel root;
         private readonly IDictionary<Channel, IEnumerable<Channel>> childrenOf;
@@ -22,7 +22,7 @@ namespace Core.Channels
             var result = new Dictionary<Channel, IEnumerable<Channel>>();
             BFS(channel =>
             {
-                foreach (var child in channel.Children)
+                foreach (var child in channel.Connecions)
                 {
                     if (!result.ContainsKey(child))
                     {

@@ -6,7 +6,7 @@ namespace Core.Channels
     {
         public long Id { get; }
         public List<ChannelPoint> Points { get; set; } = new List<ChannelPoint>();
-        public List<Channel> Children { get; set; } = new List<Channel>();
+        public List<Channel> Connecions { get; set; } = new List<Channel>();
 
         public Channel(long id)
         {

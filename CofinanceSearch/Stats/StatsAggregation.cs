@@ -89,7 +89,7 @@ namespace CofinanceSearch.Stats
                 var aggrHozNotFlooded = channelStats.HozNotFlooded;
                 var aggrSocNotFlooded = channelStats.SocNotFlooded;
 
-                foreach (var child in channel.Children)
+                foreach (var child in channel.Connecions)
                 {
                     var childAggrStats = aggrStatsDict[child];
                     aggrLength += childAggrStats.Length;

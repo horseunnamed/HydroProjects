@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EfficiencyDiffChecker", "Ef
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FloodmapsVisualizer", "FloodmapsVisualizer\FloodmapsVisualizer.csproj", "{F33AADA8-21D1-4327-B2F5-405D6E378BFC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CGBuilder", "CGBuilder\CGBuilder.csproj", "{BEA3B1B4-3B88-4E19-B86E-4CBD24F4A39D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{F33AADA8-21D1-4327-B2F5-405D6E378BFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F33AADA8-21D1-4327-B2F5-405D6E378BFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F33AADA8-21D1-4327-B2F5-405D6E378BFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEA3B1B4-3B88-4E19-B86E-4CBD24F4A39D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEA3B1B4-3B88-4E19-B86E-4CBD24F4A39D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEA3B1B4-3B88-4E19-B86E-4CBD24F4A39D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEA3B1B4-3B88-4E19-B86E-4CBD24F4A39D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

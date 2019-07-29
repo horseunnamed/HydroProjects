@@ -35,7 +35,7 @@ namespace Core.Channels
                     var childId = long.Parse(parts[1]);
                     var parent = channelsDict[parentId];
                     var child = channelsDict[childId];
-                    parent.Children.Add(child);
+                    parent.Connecions.Add(child);
                 }
             }
             var tree = new ChannelsTree(channelsDict[1]);
@@ -52,13 +52,13 @@ namespace Core.Channels
             tree.VisitChannelsFromTop(channel =>
             {
                 channelsCount++;
-                connectionsCount += channel.Children.Count;
+                connectionsCount += channel.Connecions.Count;
                 pointsBuilder.AppendLine($"{channel.Id} {channel.Points.Count}");
                 foreach (var point in channel.Points)
                 {
                     pointsBuilder.AppendLine($"{point.X} {point.Y}");
                 }
-                foreach (var child in channel.Children)
+                foreach (var child in channel.Connecions)
                 {
                     connectionsBuilder.AppendLine($"{channel.Id} {child.Id}");
                 }

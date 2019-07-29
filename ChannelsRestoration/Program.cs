@@ -52,7 +52,7 @@ namespace ChannelsRestoration
                     Console.WriteLine($"{channel.Id} is empty");
                 }
 
-                foreach (var child in channel.Children)
+                foreach (var child in channel.Connecions)
                 {
                     if (child != null)
                     {
@@ -207,7 +207,7 @@ namespace ChannelsRestoration
         private static void RestoreChildren(ChannelsTree channelsTree)
         {
             channelsTree.VisitChannelsFromTop(channel => {
-                foreach (var child in channel.Children)
+                foreach (var child in channel.Connecions)
                 {
                     var origin = child.Points[0];
                     var closestPoint = FindClosestPoint(channel, child);
@@ -238,7 +238,7 @@ namespace ChannelsRestoration
             channelsTree.VisitChannelsFromTop(channel =>
             {
                 var childrenDict = new Dictionary<ChannelPoint, List<Channel>>();
-                foreach (var child in channel.Children)
+                foreach (var child in channel.Connecions)
                 {
                     var closestPoint = FindClosestPoint(channel, child);
                     if (closestPoint != null)
@@ -263,14 +263,14 @@ namespace ChannelsRestoration
                     {
                         var channelChildren = childrenDict[point]; 
                         curChannel.Points = curPoints;
-                        curChannel.Children = channelChildren;
+                        curChannel.Connecions = channelChildren;
                         var newChannel = new Channel(newId++)
                         {
                             Points = new List<ChannelPoint>(curPoints),
                         };
                         if (i != points.Count - 1)
                         {
-                            curChannel.Children.Add(newChannel);
+                            curChannel.Connecions.Add(newChannel);
                         }
                         curChannel = newChannel;
                         curPoints = new List<ChannelPoint>();

@@ -49,7 +49,7 @@ namespace ChannelsDirectionResearch
 
                 var p1 = channel.Points[0];
 
-                if (channel.Children.Count == 0)
+                if (channel.Connecions.Count == 0)
                 {
                     undecidedChannels.Add(channel);
                 }
@@ -57,14 +57,14 @@ namespace ChannelsDirectionResearch
                 {
                     double p2x = 0;
                     double p2y = 0;
-                    foreach (var child in channel.Children)
+                    foreach (var child in channel.Connecions)
                     {
                         p2x += child.Points[0].X;
                         p2y += child.Points[0].Y;
                     }
 
-                    p2x /= channel.Children.Count;
-                    p2y /= channel.Children.Count;
+                    p2x /= channel.Connecions.Count;
+                    p2y /= channel.Connecions.Count;
 
                     double px = p2x - p1.X;
                     double py = p2y - p1.Y;
