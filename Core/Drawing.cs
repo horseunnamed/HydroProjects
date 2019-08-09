@@ -49,9 +49,13 @@ namespace Core
             return Color.FromArgb(a, r, g, b);
         }
 
-        public static void DrawChannels(Graphics graphics, IEnumerable<Channel> channels, Brush brush, bool withOrigins = false)
+        public static void DrawChannels(Graphics graphics, IEnumerable<Channel> channels, Brush brush, 
+            bool withFlip = true, bool withOrigins = false)
         {
-            graphics.Transform = GetYFlipTransform(graphics);
+            if (withFlip)
+            {
+                graphics.Transform = GetYFlipTransform(graphics);
+            }
             foreach (var channel in channels)
             {
                 foreach (var p in channel.Points)

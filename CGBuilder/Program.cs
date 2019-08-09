@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using Core;
 using Core.Channels;
 using System;
 using System.Collections.Generic;
@@ -14,15 +15,18 @@ namespace CGBuilder
             [Option("input", Required = true)]
             public string ChannelsImagePath { get; set; }
 
-            [Option("output", Required = true)]
+            [Option("output-cg", Required = true)]
             public string CGOutPath { get; set; }
+
+            [Option("output-debug-img", Required = true)]
+            public string DebugImgOutPath { get; set; }
         }
 
         private static readonly Color WHITE = Color.FromArgb(0xff, 0xff, 0xff);
         private static readonly Color ORANGE = Color.FromArgb(0xff, 0x7f, 0x27);
         private static readonly Color RED = Color.FromArgb(0xed, 0x1c, 0x24);
         private static readonly Color BLUE = Color.FromArgb(0x3f, 0x48, 0xcc);
-        private static readonly Color BLACK = Color.FromArgb(0xff, 0xff, 0xff);
+        private static readonly Color BLACK = Color.FromArgb(0x00, 0x00, 0x00);
         private static readonly Color PINK = Color.FromArgb(0xff, 0x00, 0xdc);
 
         static void Main(string[] args)
@@ -34,19 +38,45 @@ namespace CGBuilder
         {
             var bitmap = new Bitmap(options.ChannelsImagePath);
             var wasEnqueued = new HashSet<(int, int)>();
+            var components = new List<Channel>();
             for (var x = 0; x < bitmap.Width; x++)
             {
-                for (var y =0; y < bitmap.Height; y++)
+                for (var y = 0; y < bitmap.Height; y++)
                 {
                     var color = bitmap.GetPixel(x, y);
                     if (color == ORANGE && !wasEnqueued.Contains((x, y)))
                     {
-                        Parse((x, y), bitmap, wasEnqueued);
+                        components.Add(Parse((x, y), bitmap, wasEnqueued));
                     }
                 }
             }
-            System.Console.WriteLine("Press any key to continue...");
-            System.Console.ReadKey();
+
+            var contrastColors = new[]
+            {
+                Color.Red,
+                Color.Green,
+                Color.Black,
+                Color.Violet,
+                Color.Blue,
+                Color.Cyan,
+                Color.Magenta
+            };
+
+            var debugBitmap = Drawing.DrawBitmap(bitmap.Width, bitmap.Height, g =>
+            {
+                for (var i = 0; i < components.Count; i++)
+                {
+                    DrawComponent(components[i], g, contrastColors[i]);
+                }
+            });
+
+            debugBitmap.Save(options.DebugImgOutPath);
+
+            CgInteraction.WriteChannelsGraphToCg(options.CGOutPath, new ChannelsGraph(components));
+
+            Console.WriteLine($"Found {components.Count} components");
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
         }
 
         private enum State
@@ -70,22 +100,20 @@ namespace CGBuilder
             }
         }
 
-        private const int IN_CHAN = 0;
-        private const int IN_TRANSITIVE = 1;
-
-        private static ChannelsGraph Parse((int, int) start, Bitmap bmp, HashSet<(int, int)> used)
+        private static Channel Parse((int, int) start, Bitmap bmp, HashSet<(int, int)> used)
         {
             var id = 0;
             var queue = new Queue<ParserContext>();
             var usedBlue = new HashSet<(int, int)>();
 
-            Action<Channel, (int, int), State> enqueue = (channel, cell, newState) =>
+            void enqueue(Channel channel, (int, int) cell, State newState)
             {
                 queue.Enqueue(new ParserContext(channel, cell, newState));
                 used.Add(cell);
-            };
+            }
 
-            enqueue(new Channel(id++), start, State.IN_CHAN);
+            var rootChannel = new Channel(id++, true);
+            enqueue(rootChannel, start, State.IN_CHAN);
 
             while (queue.Count > 0)
             {
@@ -107,6 +135,10 @@ namespace CGBuilder
                         case State.IN_CHAN:
                             if (col == BLACK || col == ORANGE)
                             {
+                                if (col == ORANGE)
+                                {
+                                    ctx.channel.IsEntrance = true;
+                                }
                                 ctx.channel.Points.Add(new ChannelPoint(x, y));
                                 enqueue(ctx.channel, (x, y), State.IN_CHAN);
                             }
@@ -118,6 +150,10 @@ namespace CGBuilder
                                     ctx.channel.Points.Add(new ChannelPoint(x, y));
                                     enqueue(ctx.channel, (x, y), State.IN_CHAN_END);
                                 }
+                            }
+                            else if (col == RED)
+                            {
+                                // IGNORE
                             }
                             else
                             {
@@ -141,6 +177,10 @@ namespace CGBuilder
                                     channel.Points.Add(new ChannelPoint(x, y));
                                     enqueue(channel, (x, y), State.IN_CHAN_END);
                                 }
+                            }
+                            else if (col == BLACK)
+                            {
+                                // IGNORE
                             }
                             else
                             {
@@ -172,15 +212,11 @@ namespace CGBuilder
                 }
             }
 
-            return null;
+            return rootChannel;
         }
 
         private static List<(int, int)> GetNearestCells(
-            (int, int) cell, 
-            HashSet<(int, int)> used,
-            int w, 
-            int h, 
-            bool diag)
+            (int, int) cell, HashSet<(int, int)> used, int w, int h, bool diag)
         {
             var candidates = new List<(int, int)>
             {
@@ -217,6 +253,29 @@ namespace CGBuilder
                     {
                         queue.Enqueue((x, y));
                         used.Add((x, y));
+                    }
+                }
+            }
+        }
+
+        private static void DrawComponent(Channel root, Graphics g, Color color)
+        {
+            var used = new HashSet<Channel>();
+            var queue = new Queue<Channel>();
+
+            queue.Enqueue(root);
+            used.Add(root);
+
+            while (queue.Count > 0)
+            {
+                var channel = queue.Dequeue();
+                Drawing.DrawChannels(g, new [] { channel }, new SolidBrush(color), false);
+                foreach (var child in channel.Connecions)
+                {
+                    if (!used.Contains(child))
+                    {
+                        queue.Enqueue(child);
+                        used.Add(child);
                     }
                 }
             }

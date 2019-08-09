@@ -7,31 +7,11 @@ namespace Core.Channels
 
     public class ChannelsGraph
     {
-        private readonly Channel root;
-        private readonly IDictionary<Channel, IEnumerable<Channel>> childrenOf;
-        private readonly IDictionary<Channel, IEnumerable<Channel>> parentOf;
+        private readonly List<Channel> entrances;
 
-        public ChannelsGraph(Channel root, IDictionary<Channel, IEnumerable<Channel>> childrenOf)
+        public ChannelsGraph(List<Channel> entrances)
         {
-            this.root = root ?? throw new ArgumentNullException(nameof(root));
-            this.childrenOf = childrenOf ?? throw new ArgumentNullException(nameof(childrenOf));
-            this.parentOf = BuildParentOfDictionary();
-        }
-
-        private IDictionary<Channel, IEnumerable<Channel>> BuildParentOfDictionary() {
-            var result = new Dictionary<Channel, IEnumerable<Channel>>();
-            BFS(channel =>
-            {
-                foreach (var child in channel.Connecions)
-                {
-                    if (!result.ContainsKey(child))
-                    {
-                        result[child] = new List<Channel>();
-                    }
-                    (result[child] as List<Channel>).Add(channel);
-                }
-            });
-            return result;
+            this.entrances = entrances ?? throw new ArgumentNullException(nameof(entrances));
         }
 
         public void BFS(ChannelsVisitor visitor)
@@ -39,19 +19,25 @@ namespace Core.Channels
             var wasEnqueued = new HashSet<Channel>();
             var queue = new Queue<Channel>();
 
-            queue.Enqueue(root);
-            wasEnqueued.Add(root);
-
-            while (queue.Count > 0)
+            foreach (var root in entrances)
             {
-                var channel = queue.Dequeue();
-                visitor(channel);
-                foreach (var child in childrenOf[channel])
+                if (!wasEnqueued.Contains(root))
                 {
-                    if (!wasEnqueued.Contains(child))
+                    queue.Enqueue(root);
+                    wasEnqueued.Add(root);
+
+                    while (queue.Count > 0)
                     {
-                        queue.Enqueue(child);
-                        wasEnqueued.Add(child);
+                        var channel = queue.Dequeue();
+                        visitor(channel);
+                        foreach (var child in channel.Connecions)
+                        {
+                            if (!wasEnqueued.Contains(child))
+                            {
+                                queue.Enqueue(child);
+                                wasEnqueued.Add(child);
+                            }
+                        }
                     }
                 }
             }
