@@ -54,7 +54,7 @@ namespace CGBuilder
             var contrastColors = new[]
             {
                 Color.Red,
-                Color.Green,
+                Color.LightGreen,
                 Color.Black,
                 Color.Violet,
                 Color.Blue,
@@ -189,7 +189,7 @@ namespace CGBuilder
                             break;
 
                         case State.IN_CHAN_END:
-                            if (col == RED)
+                            if (col == RED || col == PINK)
                             {
                                 enqueue(ctx.channel, (x, y), State.IN_TRANSITIVE);
                             }
