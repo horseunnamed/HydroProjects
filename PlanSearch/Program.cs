@@ -37,6 +37,9 @@ namespace PlanSearch
             [Option("max-s", Required = true)]
             public int MaxS { get; set; }
 
+            [Option("use-big-dams", Default = false)]
+            public bool UseBigDams { get; set; }
+
             [Option("output-dir", Required = true)]
             public string OutputDir { get; set; }
         }
@@ -81,7 +84,12 @@ namespace PlanSearch
                 var donorsAcceptors = DonorsAcceptors.Create(strategy, channels, targetMap, 
                     options.TargetValue, floodSeries);
 
-                var projectPlan = donorsAcceptors.Run(GenerateCofinanceInfo(channels.GetAllChannels()), options.MaxS);
+                var blackList = !options.UseBigDams ? Enumerable.Range(242, 8) : Enumerable.Empty<int>();
+
+                var projectPlan = donorsAcceptors.Run(
+                    GenerateCofinanceInfo(channels.GetAllChannels()),
+                    options.MaxS,
+                    blackList.Select(id => (long)id));
 
                 var projectCsv = GenerateProjectPlanCsv(projectPlan);
                 File.WriteAllText($"{options.OutputDir}/{strategyName}.csv", projectCsv);

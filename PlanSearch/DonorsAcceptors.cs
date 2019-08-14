@@ -188,18 +188,31 @@ namespace PlanSearch
             return result;
         }
 
-        public ProjectPlan Run(CofinanceInfo cofinanceInfo, int maxS)
+        public ProjectPlan Run(CofinanceInfo cofinanceInfo, int maxS, IEnumerable<long> blackList) 
         {
             var estimations = new List<ProjectPlan.Estimation>();
             for (var s = 1; s < _rating.orderedByAcceptorsRating.Count && s <= maxS; s++)
             {
-                var acceptors = new HashSet<Channel>(_rating.orderedByAcceptorsRating.Take(s).Select(pair => pair.Item2));
-                var potentialDonors = GetDonors(acceptors);
+                var acceptors = _rating.orderedByAcceptorsRating
+                    .Take(s)
+                    .Select(pair => pair.Item2)
+                    .Where(channel => !blackList.Contains(channel.Id))
+                    .ToHashSet();
+
+                var potentialDonors = GetDonors(acceptors)
+                    .Where(donor => !blackList.Contains(donor.Channel.Id))
+                    .ToHashSet();
+
                 var optimalDonors = DonorsOptimizer.FindOptimalDonors(potentialDonors, cofinanceInfo);
-                var totalEffect = optimalDonors.Select(donor => donor.Effect).Sum();
+
+                var totalEffect = optimalDonors
+                    .Select(donor => donor.Effect)
+                    .Sum();
+
                 var totalPrice = optimalDonors
                     .Select(donor => cofinanceInfo.ChannelsPrices[donor.Channel])
                     .Sum();
+
                 estimations.Add(
                     new ProjectPlan.Estimation( 
                         s: s, 
