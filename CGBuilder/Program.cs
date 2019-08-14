@@ -32,6 +32,8 @@ namespace CGBuilder
         static void Main(string[] args)
         {
             Parser.Default.ParseArguments<Options>(args).WithParsed(Run);
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
         }
 
         private static void Run(Options options)
@@ -75,8 +77,6 @@ namespace CGBuilder
             CgInteraction.WriteChannelsGraphToCg(options.CGOutPath, new ChannelsGraph(components));
 
             Console.WriteLine($"Found {components.Count} components");
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
         }
 
         private enum State
