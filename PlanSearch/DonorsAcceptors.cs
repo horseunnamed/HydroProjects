@@ -196,7 +196,7 @@ namespace PlanSearch
                 var acceptors = _rating.orderedByAcceptorsRating
                     .Take(s)
                     .Select(pair => pair.Item2)
-                    .Where(channel => !blackList.Contains(channel.Id))
+                    // .Where(channel => !blackList.Contains(channel.Id))
                     .ToHashSet();
 
                 var potentialDonors = GetDonors(acceptors)

@@ -10,6 +10,11 @@ namespace PlanSearch
         {
             var result = new HashSet<Donor>();
 
+            if (donors.Count == 0)
+            {
+                return result;
+            }
+
             LpSolve.Init();
 
             using (var lp = LpSolve.make_lp(0, donors.Count))
