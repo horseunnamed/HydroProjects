@@ -8,24 +8,28 @@ namespace ChannelsEditor
 {
     class MainModel
     {
-        private readonly ChannelsTree _channelsTree;
-        private readonly Dictionary<ChannelPoint, Channel> _pointsToChannels = new Dictionary<ChannelPoint, Channel>();
+        private readonly ChannelsGraph _channelsGraph;
+        private readonly Dictionary<ChannelPoint, Channel> _channelsByPoints = new Dictionary<ChannelPoint, Channel>();
+        private readonly Dictionary<long, Channel> _channelsById = new Dictionary<long, Channel>();
+        private readonly List<Channel> _channels = new List<Channel>();
 
-        public MainModel(ChannelsTree channelsTree)
+        public MainModel(ChannelsGraph channelsGraph)
         {
-            _channelsTree = channelsTree;
-            _channelsTree.VisitChannelsFromTop(channel =>
+            _channelsGraph = channelsGraph;
+            _channelsGraph.BFS(channel =>
             {
+                _channels.Add(channel);
+                _channelsById[channel.Id] = channel;
                 foreach (var point in channel.Points)
                 {
-                    _pointsToChannels[point] = channel;
+                    _channelsByPoints[point] = channel;
                 }
             });
         }
 
         public Channel GetChannelById(long id)
         {
-            return _channelsTree.GetChannelById(id);
+            return _channelsById[id];
         }
 
         public Channel GetChannelAt(ChannelPoint point)
@@ -36,13 +40,13 @@ namespace ChannelsEditor
             {
                 for (var xi = point.X - r; xi <= point.X + r; xi++)
                 {
-                    var channel = _pointsToChannels.GetValue(new ChannelPoint(xi, point.Y + r));
+                    var channel = _channelsByPoints.GetValue(new ChannelPoint(xi, point.Y + r));
                     if (channel != null)
                     {
                         return channel;
                     }
 
-                    channel = _pointsToChannels.GetValue(new ChannelPoint(xi, point.Y - r));
+                    channel = _channelsByPoints.GetValue(new ChannelPoint(xi, point.Y - r));
                     if (channel != null)
                     {
                         return channel;
@@ -51,12 +55,12 @@ namespace ChannelsEditor
 
                 for (var yi = point.Y - r; yi <= point.Y + r; yi++)
                 {
-                    var channel = _pointsToChannels.GetValue(new ChannelPoint(point.X + r, yi));
+                    var channel = _channelsByPoints.GetValue(new ChannelPoint(point.X + r, yi));
                     if (channel != null)
                     {
                         return channel;
                     }
-                    channel = _pointsToChannels.GetValue(new ChannelPoint(point.X - r, yi));
+                    channel = _channelsByPoints.GetValue(new ChannelPoint(point.X - r, yi));
                     if (channel != null)
                     {
                         return channel;
@@ -73,22 +77,16 @@ namespace ChannelsEditor
             var selectedSubChildren = new List<Channel>();
             if (selectedChannel != null)
             {
-                _channelsTree.VisitChannelsDepthFromTop(selectedChannel, (channel, depth) =>
-                {
-                    if (depth > 0)
-                    {
-                        selectedSubChildren.Add(channel);
-                    }
-                });
+                selectedSubChildren.AddRange(selectedChannel.Connecions);
             }
             var bitmap = Drawing.DrawBitmap(944, 944, g =>
             {
-                Drawing.DrawChannels(g, _channelsTree.GetAllChannels(), new SolidBrush(Color.Black));
+                Drawing.DrawChannels(g, _channels, new SolidBrush(Color.Black));
                 if (selectedChannel != null)
                 {
                     Drawing.DrawChannels(g, new List<Channel> { selectedChannel }, new SolidBrush(Color.LawnGreen), true);
                     Drawing.DrawChannels(g, selectedSubChildren, new SolidBrush(Color.DodgerBlue), true);
-                    var selectedParent = _channelsTree.GetParentOf(selectedChannel);
+                    // var selectedParent = _channelsTree.GetParentOf(selectedChannel);
 /*
                     if (selectedParent != null)
                     {
@@ -100,9 +98,9 @@ namespace ChannelsEditor
             return bitmap;
         }
 
-        public IList<Channel> GetAllChannels()
+        public List<Channel> GetAllChannels()
         { 
-            return _channelsTree.GetAllChannels().ToList();
+            return _channels;
         }
 
     }

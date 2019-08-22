@@ -41,6 +41,7 @@ namespace CGBuilder
             var bitmap = new Bitmap(options.ChannelsImagePath);
             var wasEnqueued = new HashSet<(int, int)>();
             var components = new List<Channel>();
+            var id = 0;
             for (var x = 0; x < bitmap.Width; x++)
             {
                 for (var y = 0; y < bitmap.Height; y++)
@@ -48,7 +49,7 @@ namespace CGBuilder
                     var color = bitmap.GetPixel(x, y);
                     if (color == ORANGE && !wasEnqueued.Contains((x, y)))
                     {
-                        components.Add(Parse((x, y), bitmap, wasEnqueued));
+                        components.Add(Parse(ref id, (x, y), bitmap, wasEnqueued));
                     }
                 }
             }
@@ -74,7 +75,10 @@ namespace CGBuilder
 
             debugBitmap.Save(options.DebugImgOutPath);
 
-            CgInteraction.WriteChannelsGraphToCg(options.CGOutPath, new ChannelsGraph(components));
+            var graph = new ChannelsGraph(components);
+            ImproveConnections(graph, bitmap);
+
+            CgInteraction.WriteChannelsGraphToCg(options.CGOutPath, graph);
 
             Console.WriteLine($"Found {components.Count} components");
         }
@@ -100,9 +104,8 @@ namespace CGBuilder
             }
         }
 
-        private static Channel Parse((int, int) start, Bitmap bmp, HashSet<(int, int)> used)
+        private static Channel Parse(ref int id, (int, int) start, Bitmap bmp, HashSet<(int, int)> used)
         {
-            var id = 0;
             var queue = new Queue<ParserContext>();
             var usedBlue = new HashSet<(int, int)>();
 
@@ -139,7 +142,7 @@ namespace CGBuilder
                                 {
                                     ctx.channel.IsEntrance = true;
                                 }
-                                ctx.channel.Points.Add(new ChannelPoint(x, y));
+                                ctx.channel.Points.Add(new ChannelPoint(x, bmp.Height - y));
                                 enqueue(ctx.channel, (x, y), State.IN_CHAN);
                             }
                             else if (col == BLUE)
@@ -147,7 +150,7 @@ namespace CGBuilder
                                 if (!usedBlue.Contains((x, y)))
                                 {
                                     UseAdjacentBlueCells(bmp, (x, y), usedBlue);
-                                    ctx.channel.Points.Add(new ChannelPoint(x, y));
+                                    ctx.channel.Points.Add(new ChannelPoint(x, bmp.Height - y));
                                     enqueue(ctx.channel, (x, y), State.IN_CHAN_END);
                                 }
                             }
@@ -174,7 +177,7 @@ namespace CGBuilder
                                     var channel = new Channel(id++);
                                     ctx.channel.Connecions.Add(channel);
                                     channel.Connecions.Add(ctx.channel);
-                                    channel.Points.Add(new ChannelPoint(x, y));
+                                    channel.Points.Add(new ChannelPoint(x, bmp.Height - y));
                                     enqueue(channel, (x, y), State.IN_CHAN_END);
                                 }
                             }
@@ -195,12 +198,12 @@ namespace CGBuilder
                             }
                             else if (col == BLUE)
                             {
-                                ctx.channel.Points.Add(new ChannelPoint(x, y));
+                                ctx.channel.Points.Add(new ChannelPoint(x, bmp.Height - y));
                                 enqueue(ctx.channel, (x, y), State.IN_CHAN_END);
                             }
                             else if (col == BLACK)
                             {
-                                ctx.channel.Points.Add(new ChannelPoint(x, y));
+                                ctx.channel.Points.Add(new ChannelPoint(x, bmp.Height - y));
                                 enqueue(ctx.channel, (x, y), State.IN_CHAN);
                             }
                             else
@@ -258,6 +261,73 @@ namespace CGBuilder
             }
         }
 
+        private static void ImproveConnections(ChannelsGraph graph, Bitmap bmp)
+        {
+            var channelByPoint = new Dictionary<ChannelPoint, Channel>();
+            graph.BFS(channel =>
+            {
+                foreach (var point in channel.Points)
+                {
+                    channelByPoint[point] = channel;
+                }
+            });
+
+            var used = new HashSet<(int, int)>();
+            for (var x = 0; x < bmp.Width; x++)
+            {
+                for (var y = 0; y < bmp.Height; y++)
+                {
+                    if (bmp.GetPixel(x, y) == RED && !used.Contains((x, y)))
+                    {
+                        var queue = new Queue<(int, int)>();
+                        queue.Enqueue((x, y));
+                        var adjacentChannels = new HashSet<Channel>();
+
+                        while (queue.Count > 0)
+                        {
+                            var (qx, qy) = queue.Dequeue();
+                            var nearest = GetNearestCells((qx, qy), used, bmp.Width, bmp.Height, false);
+                            foreach (var cell in nearest)
+                            {
+                                var cx = cell.Item1;
+                                var cy = cell.Item2;
+                                if (bmp.GetPixel(cx, cy) == BLUE)
+                                {
+                                    adjacentChannels.Add(
+                                        channelByPoint[new ChannelPoint(cx, bmp.Height - cy)]);
+                                }
+
+                                if (bmp.GetPixel(cx, cy) == RED && !used.Contains((cx, cy)))
+                                {
+                                    used.Add((cx, cy));
+                                    queue.Enqueue((cx, cy));
+                                }
+                            }
+                        }
+
+                        foreach (var channel1 in adjacentChannels)
+                        {
+                            foreach (var channel2 in adjacentChannels)
+                            {
+                                if (channel1 != channel2)
+                                {
+                                    if (!channel1.Connecions.Contains(channel2))
+                                    {
+                                        channel1.Connecions.Add(channel2);
+                                    }
+                                    if (!channel2.Connecions.Contains(channel1))
+                                    {
+                                        channel2.Connecions.Add(channel1);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
         private static void DrawComponent(Channel root, Graphics g, Color color)
         {
             var used = new HashSet<Channel>();
@@ -269,7 +339,7 @@ namespace CGBuilder
             while (queue.Count > 0)
             {
                 var channel = queue.Dequeue();
-                Drawing.DrawChannels(g, new [] { channel }, new SolidBrush(color), false);
+                Drawing.DrawChannels(g, new [] { channel }, new SolidBrush(color));
                 foreach (var child in channel.Connecions)
                 {
                     if (!used.Contains(child))

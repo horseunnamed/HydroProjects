@@ -66,7 +66,7 @@ namespace ChannelsEditor
             bool? result = dialog.ShowDialog();
             if (result == true)
             {
-                _model = new MainModel(CgInteraction.ReadChannelsTreeFromCg(dialog.FileName));
+                _model = new MainModel(CgInteraction.ReadChannelsGraphFromCg(dialog.FileName));
                 Channels = _model.GetAllChannels();
                 ChannelsBitmap = _model.DrawChannels(null).ToBitmapImage();
             }
@@ -74,7 +74,9 @@ namespace ChannelsEditor
 
         private void OnBitmapPointSelected(double x, double y)
         {
-            var point = new ChannelPoint((int)x, (int)_channelsBitmap.Height - (int)y - 1);
+            var ay = 944 - y / _channelsBitmap.Height * 944;
+            var ax = x / _channelsBitmap.Width * 944;
+            var point = new ChannelPoint((int)ax, (int)ay);
             var selectedChannel = _model.GetChannelAt(point);
             SelectedChannel = selectedChannel;
             StatusMessage = CreateStatusMessage(selectedChannel?.Id);
