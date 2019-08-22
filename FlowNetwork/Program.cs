@@ -2,6 +2,8 @@
 using Core.Channels;
 using Core.Grid;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace FlowNetwork
@@ -18,6 +20,9 @@ namespace FlowNetwork
 
             [Option("output-graph", Required = true)]
             public string GraphOutPath { get; set; }
+
+            [Option("output-report", Required = true)]
+            public string ReportOutPath { get; set; }
         }
 
         static void Main(string[] args)
@@ -43,8 +48,12 @@ namespace FlowNetwork
             var graph = CgInteraction.ReadChannelsGraphFromCg(options.GraphPath);
             var flood = FloodseriesZip.Read(options.FloodPath, 20, 20);
 
+            var hMap = flood.Days[0].HMap;
             var vxMap = flood.Days[0].VxMap;
             var vyMap = flood.Days[0].VyMap;
+
+            var channelById = new Dictionary<long, Channel>();
+            var channels = new List<Channel>();
             
             graph.BFS(channel =>
             {
@@ -53,8 +62,53 @@ namespace FlowNetwork
                     var directionBetween = GetDirectionBetweenChannels(channel, child);
                     return IsSodirected(direction, directionBetween); 
                 }).ToList();
+                channelById[channel.Id] = channel;
+                channels.Add(channel);
             });
 
+            var interestingId = new List<long>()
+            {
+                74, 77, 87, 86, 90, 91, 109, 108, 151, 152, 103, 105, 104, 131, 130, 163, 164
+            };
+
+            var reportCsv = "id,q_entrance,q_exit,loss,is_source";
+
+            foreach (var channel in channels)
+            {
+                var n = 3;
+
+                var vxEntrance = 0d;
+                var vyEntrance = 0d;
+                var hEntrance = 0d;
+
+                for (var i = 0; i < n && i < channel.Points.Count; i++)
+                {
+                    var p = channel.Points[i];
+                    vxEntrance += vxMap[p.X, p.Y - 1] / n;
+                    vyEntrance += vyMap[p.X, p.Y - 1] / n;
+                    hEntrance += hMap[p.X, p.Y - 1] / n;
+                }
+
+                var qEntrance = Length(new Vec(vxEntrance, vyEntrance)) * 25 * hEntrance;
+
+                var vxExit = 0d;
+                var vyExit = 0d;
+                var hExit = 0d;
+
+                for (var i = 0; i < n && i < channel.Points.Count; i++)
+                {
+                    var p = channel.Points[channel.Points.Count - i - 1];
+                    vxExit += vxMap[p.X, p.Y - 1] / n;
+                    vyExit += vyMap[p.X, p.Y - 1] / n;
+                    hExit += hMap[p.X, p.Y - 1] / n;
+                }
+
+                var qExit = Length(new Vec(vxExit, vyExit)) * 25 * hExit;
+
+                reportCsv += $"\n{channel.Id},{qEntrance},{qExit},{qEntrance - qExit},{(channel.IsEntrance ? 1 : 0)}";
+            }
+
+            File.WriteAllText(options.ReportOutPath, reportCsv);
             CgInteraction.WriteChannelsGraphToCg(options.GraphOutPath, graph);
         }
 
@@ -101,7 +155,7 @@ namespace FlowNetwork
         private static bool IsSodirected(Vec v1, Vec v2)
         {
             var cosVal = v1.X * v2.X + v1.Y * v2.Y;
-            return cosVal > 0.5;
+            return cosVal > 0.2;
         }
 
     }
