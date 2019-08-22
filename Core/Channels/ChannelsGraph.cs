@@ -29,7 +29,6 @@ namespace Core.Channels
                     while (queue.Count > 0)
                     {
                         var channel = queue.Dequeue();
-                        visitor(channel);
                         foreach (var child in channel.Connecions)
                         {
                             if (!wasEnqueued.Contains(child))
@@ -38,6 +37,7 @@ namespace Core.Channels
                                 wasEnqueued.Add(child);
                             }
                         }
+                        visitor(channel);
                     }
                 }
             }
