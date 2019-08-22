@@ -1,0 +1,4 @@
+Total: 52689 (307675)
+Base flooded: 8117 (54805)
+New flooded: 3067 (46507)
+Relative effect: -62.2% (-15.1%)
